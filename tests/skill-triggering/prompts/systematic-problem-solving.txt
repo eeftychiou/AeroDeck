@@ -1,0 +1,3 @@
+When running our automated PDF compiler, it randomly fails with a 'Pandoc exit code 1' error on some documents. Also, our browser script fails to click the 'Next' button on page 3 of the application form.
+
+We need to investigate these issues. Rather than trying quick fixes or increasing timeouts, we need to trace the exact root causes, understand what has changed, and verify our hypothesis systematically.

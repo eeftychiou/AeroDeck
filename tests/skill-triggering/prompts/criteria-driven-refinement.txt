@@ -1,0 +1,3 @@
+We are drafting a new job cover letter for the Product Manager role.
+
+Before we write any content, we must define the exact success criteria and evaluation rubric (e.g. must mention project lead experience, must have cover letter layout, must be under 300 words). We need to verify that our empty draft fails this checklist, write the minimal content to pass, and then polish the flow.

@@ -1,0 +1,9 @@
+Here is the spec for our new e-document management and routing pipeline:
+
+Requirements:
+- Read incoming PDF files from `/inbox/dropped/`
+- Extract metadata (sender, date, reference number)
+- Classify by keyword: "Invoice" -> `/inbox/billing/`, "Resume" -> `/inbox/hr/`, "Contract" -> `/inbox/legal/`
+- Log all actions in `/inbox/routing_manifest.json`
+
+We need to implement and automate this. There are multiple steps involved - setting up directories, writing the parser, configuring classification rules, and testing the state changes. Let's write a detailed implementation plan.

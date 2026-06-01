@@ -1,0 +1,5 @@
+{
+  "name": "aerodeck",
+  "description": "A flight deck and multi-stage review pipeline for composable agent skills",
+  "version": "6.0.0"
+}

@@ -1,0 +1,3 @@
+I have completed drafting the marketing strategy document at `docs/strategy.md` and created the visual charts in `assets/charts.png`.
+
+Before I deliver this to the client, I need to get a rigorous review of the tone, accuracy of statistics, and check if it meets all the strategic requirements defined in the spec.

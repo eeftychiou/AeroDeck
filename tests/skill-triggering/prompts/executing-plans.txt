@@ -1,0 +1,1 @@
+I have a task implementation plan at docs/superpowers/plans/2026-06-01-document-routing.md that needs to be executed. Please implement and verify it.

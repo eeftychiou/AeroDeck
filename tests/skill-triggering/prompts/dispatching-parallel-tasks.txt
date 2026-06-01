@@ -1,0 +1,6 @@
+We have three separate, independent jobs to complete right now:
+1. Parse the incoming invoices in `/inbox/billing/` and generate a billing manifest.
+2. Fill out the application details for the marketing coordinator role on `https://example.com/apply-marketing`.
+3. Check the feedback forms in `/inbox/feedback/` and compile a satisfaction summary report.
+
+Each task runs in its own directory or browser context, has no shared state, and can be executed at the same time. Let's dispatch these concurrently.
