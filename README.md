@@ -1,48 +1,25 @@
 # AeroDeck for Antigravity 2.0, Antigravity IDE and Antigravity CLI
 
-> \*\*This is a fork of \[obra/superpowers](https://github.com/obra/superpowers) ported to \[Google Antigravity 2.0](https://antigravity.google) and rebranded as AeroDeck.\*\*
->
-> All upstream skills, workflows, and prompt templates are preserved. This fork adds native Antigravity 2.0 support: a `plugin.json` manifest, a comprehensive tool mapping reference (`antigravity-tools.md`), workspace isolation via `invoke_subagent` with `Workspace: "branch"`, and a full test suite.
+AeroDeck is a complete, ground-up general-purpose framework for agentic workflows. It is built on top of a set of composable skills and initial instructions that ensure your agent acts systematically and reliably across tasks.
 
-AeroDeck is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
-
-## What's different in this fork?
-
-|Area|What changed|
-|-|-|
-|**Plugin manifest**|Added `plugin.json` for Antigravity 2.0 plugin discovery|
-|**Tool mapping**|New `antigravity-tools.md` maps all 20 Antigravity tools from the generic Claude Code format used in skills|
-|**Subagent dispatch**|Documents `invoke_subagent` (baseline) and `define_subagent` (optimization for multi-task plans)|
-|**Workspace isolation**|`using-isolated-workspaces` recognizes `Workspace: "branch"` as a native worktree tool|
-|**Bootstrap**|`using-aerodeck` SKILL.md and `GEMINI.md` updated with Antigravity 2.0 entries|
-|**Test suite**|Full `tests/antigravity/` directory with plugin discovery, skill triggering, subagent dispatch, and tool mapping validation tests|
-|**Cross-platform**|All upstream prompt templates are **unmodified** — Claude Code, Codex, Copilot CLI, and Gemini CLI all work exactly as before|
+AeroDeck natively supports the **Google Antigravity 2.0** platform, featuring a `plugin.json` manifest, a comprehensive tool mapping reference (`antigravity-tools.md`), workspace isolation via `invoke_subagent` with `Workspace: "branch"`, and a robust test suite.
 
 ## Quickstart
 
-Give your agent AeroDeck: [Antigravity 2.0](#antigravity-20), [Antigravity IDE](#antigravity-ide), [Antigravity CLI](#antigravity-cli), [Claude Code](#claude-code), [Codex CLI](#codex-cli), [Codex App](#codex-app), [Factory Droid](#factory-droid), [Gemini CLI](#gemini-cli), [OpenCode](#opencode), [Cursor](#cursor), [GitHub Copilot CLI](#github-copilot-cli).
+Give your agent AeroDeck: [Antigravity 2.0 (IDE/CLI)](#antigravity-20-idecli).
 
 ## How it works
 
-It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do.
+It starts from the moment you fire up your agent. As soon as it receives a goal or a task, it *doesn't* just jump into performing actions. Instead, it steps back and asks you what you're really trying to achieve.
 
-Once it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest.
+Once it's teased a clear specification or goal out of the conversation, it shows it to you in digestible sections for validation.
 
-After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY.
+After you've signed off on the design or target requirements, your agent puts together an implementation plan that's extremely clear and detailed. It decomposes the overall goal into bite-sized tasks with explicit success criteria and verifications. It emphasizes true Red/Green Criteria-Driven Refinement (CDR), YAGNI (You Aren't Gonna Need It), and simplicity.
 
-Next up, once you say "go", it launches a *subagent-driven-task-pipeline* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for Claude to be able to work autonomously for a couple hours at a time without deviating from the plan you put together.
+Next up, once you say "go", it launches a *subagent-driven-task-pipeline* process, executing each task through specialized worker and reviewer subagents (with multi-stage reviews for content creation or operational execution) without stopping. It can work autonomously to achieve your goals while ensuring every intermediate step is fully verified.
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has AeroDeck.
+There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your agent just has AeroDeck.
 
-
-
-## Sponsorship
-
-If AeroDeck has helped you do stuff that makes money and you are so inclined, I'd greatly appreciate it if you'd consider [sponsoring my opensource work](https://github.com/sponsors/obra).
-
-Thanks!
-
-* Jesse
 
 
 
@@ -59,13 +36,13 @@ This is the primary target for this fork. Choose your platform below.
 * **Global plugin** (available in all projects):
 
 ```bash
-  git clone https://github.com/roundpilot/aerodeck ~/.gemini/config/plugins/aerodeck
+  git clone https://github.com/eeftychiou/AeroDeck ~/.gemini/config/plugins/aerodeck
   ```
 
 * **Workspace plugin** (project-level only):
 
 ```bash
-  git clone https://github.com/roundpilot/aerodeck .agents/plugins/aerodeck
+  git clone https://github.com/eeftychiou/AeroDeck .agents/plugins/aerodeck
   ```
 
 * **Update later:**
@@ -79,13 +56,13 @@ This is the primary target for this fork. Choose your platform below.
 * **Global plugin** (available in all projects):
 
 ```powershell
-  git clone https://github.com/roundpilot/aerodeck "$env:USERPROFILE\\.gemini\\config\\plugins\\aerodeck"
+  git clone https://github.com/eeftychiou/AeroDeck "$env:USERPROFILE\\.gemini\\config\\plugins\\aerodeck"
   ```
 
 * **Workspace plugin** (project-level only):
 
 ```powershell
-  git clone https://github.com/roundpilot/aerodeck .agents\\plugins\\aerodeck
+  git clone https://github.com/eeftychiou/AeroDeck .agents\\plugins\\aerodeck
   ```
 
 * **Update later:**
@@ -105,7 +82,7 @@ If you run the **Windows Antigravity IDE** but your workspace is in **WSL**, the
   Clone the repository directly to your Windows user profile path:
 
   ```bash
-  git clone https://github.com/roundpilot/aerodeck /mnt/c/Users/$USER/.gemini/config/plugins/aerodeck
+  git clone https://github.com/eeftychiou/AeroDeck /mnt/c/Users/$USER/.gemini/config/plugins/aerodeck
   ```
 
 * **Workspace plugin** (project-level only, installed inside your WSL workspace):
@@ -113,7 +90,7 @@ If you run the **Windows Antigravity IDE** but your workspace is in **WSL**, the
   Clone (or symlink) the repository into the project-level plugins folder inside your WSL workspace:
 
   ```bash
-  git clone https://github.com/roundpilot/aerodeck /path/to/your/wsl/project/.agents/plugins/aerodeck
+  git clone https://github.com/eeftychiou/AeroDeck /path/to/your/wsl/project/.agents/plugins/aerodeck
   ```
 
 
@@ -133,134 +110,15 @@ Once installed, AeroDeck skills are available via the **`/using-aerodeck`** slas
 
 
 
-### Claude Code
-
-AeroDeck is available via the [official Claude plugin marketplace](https://claude.com/plugins/aerodeck)
-
-#### Official Marketplace
-
-* Install the plugin from Anthropic's official marketplace:
-
-```bash
-/plugin install aerodeck@claude-plugins-official
-```
-
-#### AeroDeck Marketplace
-
-The AeroDeck marketplace provides AeroDeck and some other related plugins for Claude Code.
-
-* Register the marketplace:
-
-```bash
-/plugin marketplace add obra/aerodeck-marketplace
-```
-
-* Install the plugin from this marketplace:
-
-```bash
-/plugin install aerodeck@aerodeck-marketplace
-```
-
-### Codex CLI
-
-AeroDeck is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
-
-* Open the plugin search interface:
-
-```bash
-/plugins
-```
-
-* Search for AeroDeck:
-
-```bash
-aerodeck
-```
-
-* Select `Install Plugin`.
-
-### Codex App
-
-AeroDeck is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
-
-* In the Codex app, click on Plugins in the sidebar.
-* You should see `AeroDeck` in the Coding section.
-* Click the `+` next to AeroDeck and follow the prompts.
-
-### Factory Droid
-
-* Register the marketplace:
-
-```bash
-droid plugin marketplace add https://github.com/obra/aerodeck
-```
-
-* Install the plugin:
-
-```bash
-droid plugin install aerodeck@aerodeck
-```
-
-### Gemini CLI
-
-* Install the extension:
-
-```bash
-gemini extensions install https://github.com/obra/aerodeck
-```
-
-* Update later:
-
-```bash
-gemini extensions update aerodeck
-```
-
-### OpenCode
-
-OpenCode uses its own plugin install; install AeroDeck separately even if you
-already use it in another harness.
-
-* Tell OpenCode:
-
-```
-Fetch and follow instructions from https://raw.githubusercontent.com/roundpilot/aerodeck/refs/heads/main/.opencode/INSTALL.md
-```
-
-* Detailed docs: [docs/README.opencode.md](docs/README.opencode.md)
-
-### Cursor
-
-* In Cursor Agent chat, install from marketplace:
-
-```text
-/add-plugin aerodeck
-```
-
-* Or search for "aerodeck" in the plugin marketplace.
-
-### GitHub Copilot CLI
-
-* Register the marketplace:
-
-```bash
-copilot plugin marketplace add obra/aerodeck-marketplace
-```
-
-* Install the plugin:
-
-```bash
-copilot plugin install aerodeck@aerodeck-marketplace
-```
-
 ## The Basic Workflow
 
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
-2. **using-isolated-workspaces** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
-4. **subagent-driven-task-pipeline** or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), or executes in batches with human checkpoints.
-5. **criteria-driven-refinement** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
+1. **brainstorming** - Activates before creating content or performing actions. Refines rough ideas through questions, explores alternatives, presents designs/requirements in sections for validation. Saves specification documents.
+2. **using-isolated-workspaces** - Activates after requirements approval. Ensures isolated workspaces are set up, verifies clean starting baselines.
+3. **writing-plans** - Activates with approved spec. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact targets (file paths, browser selectors, folders), complete content/steps, and verification steps.
+4. **subagent-driven-task-pipeline** or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with multi-stage review (spec compliance, then quality of content/action), or executes in batches with human checkpoints.
+5. **criteria-driven-refinement** - Activates during implementation. Enforces RED-GREEN-REFACTOR: define success criteria, watch it fail, perform minimal content or action, watch it pass, save. Deletes unverified drafts/changes.
 6. **requesting-task-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
-7. **completing-a-task-pipeline** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
+7. **completing-a-task-pipeline** - Activates when tasks complete. Verifies deliverables, presents options (merge/PR/keep/discard), cleans up workspace.
 
 **The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
 
@@ -301,11 +159,10 @@ copilot plugin install aerodeck@aerodeck-marketplace
 * **Complexity reduction** - Simplicity as primary goal
 * **Evidence over claims** - Verify before declaring success
 
-Read [the original release announcement](https://blog.fsck.com/2025/10/09/superpowers/) for the upstream project.
 
 ## Contributing
 
-The general contribution process for AeroDeck is below. Keep in mind that we don't generally accept contributions of new skills and that any updates to skills must work across all of the coding agents we support.
+The general contribution process for AeroDeck is below. Keep in mind that we don't generally accept contributions of new skills and that any updates to skills must work across all of the agents we support.
 
 1. Fork the repository
 2. Switch to the 'dev' branch
@@ -317,7 +174,7 @@ See `skills/writing-skills/SKILL.md` for the complete guide.
 
 ## Updating
 
-AeroDeck updates are somewhat coding-agent dependent, but are often automatic.
+AeroDeck updates are somewhat agent-dependent, but are often automatic.
 
 ## License
 
@@ -325,9 +182,5 @@ MIT License - see LICENSE file for details
 
 ## Community
 
-AeroDeck is built by [Jesse Vincent](https://blog.fsck.com) and the rest of the folks at [Prime Radiant](https://primeradiant.com).
-
-* **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with AeroDeck
-* **Issues**: https://github.com/roundpilot/aerodeck/issues
-* **Release announcements**: [Sign up](https://primeradiant.com/superpowers/) to get notified about new versions
+* **Issues**: https://github.com/eeftychiou/AeroDeck/issues
 

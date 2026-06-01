@@ -15,7 +15,7 @@ Assume they are a skilled worker, but know almost nothing about our toolset or p
 
 **Context:** If working in an isolated workspace/worktree, it should have been created via the `aerodeck:using-isolated-workspaces` skill at execution time.
 
-**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `docs/aerodeck/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
 
 ## Scope Check
@@ -79,7 +79,7 @@ Define how each task step is verified. Do not just say "check if it works". Spec
 
 - [ ] **Step 1: Write/Define success criteria**
 
-Write success criteria in `docs/superpowers/criteria/task-N-criteria.json` or state it explicitly:
+Write success criteria in `docs/aerodeck/criteria/task-N-criteria.json` or state it explicitly:
 ```json
 {
   "criteria": "Document exists in billing, metadata contains invoice_id"
@@ -107,7 +107,7 @@ Expected: PASS (File exists and contains INV-1002)
 - [ ] **Step 5: Commit/Save**
 
 ```bash
-git add docs/superpowers/criteria/task-N-criteria.json exact/path/to/document.md
+git add docs/aerodeck/criteria/task-N-criteria.json exact/path/to/document.md
 git commit -m "feat: complete billing document task"
 ```
 ````
@@ -143,7 +143,7 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 
 After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+**"Plan complete and saved to `docs/aerodeck/plans/<filename>.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** - I dispatch specialized worker/reviewer subagents per task, review between tasks, fast iteration.
 

@@ -48,10 +48,10 @@ cat > package.json <<'EOF'
 }
 EOF
 
-mkdir -p src test docs/superpowers/plans
+mkdir -p src test docs/aerodeck/plans
 
 # Create a simple 2-task implementation plan
-PLAN_PATH="docs/superpowers/plans/implementation-plan.md"
+PLAN_PATH="docs/aerodeck/plans/implementation-plan.md"
 
 cat > "$PLAN_PATH" <<'EOF'
 # Test Task Plan

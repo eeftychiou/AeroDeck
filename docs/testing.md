@@ -1,6 +1,6 @@
-# Testing Superpowers Skills
+# Testing AeroDeck Skills
 
-This document describes how to test Superpowers skills, particularly the integration tests for complex skills like `subagent-driven-development`.
+This document describes how to test AeroDeck skills, particularly the integration tests for complex skills like `subagent-driven-development`.
 
 ## Overview
 
@@ -33,9 +33,9 @@ cd tests/claude-code
 
 ### Requirements
 
-- Must run from the **superpowers plugin directory** (not from temp directories)
+- Must run from the **aerodeck plugin directory** (not from temp directories)
 - Claude Code must be installed and available as `claude` command
-- Local dev marketplace must be enabled: `"superpowers@superpowers-dev": true` in `~/.claude/settings.json`
+- Local dev marketplace must be enabled: `"aerodeck@aerodeck-dev": true` in `~/.claude/settings.json`
 
 ## Integration Test: subagent-driven-development
 
@@ -149,8 +149,8 @@ python3 tests/claude-code/analyze-token-usage.py ~/.claude/projects/<project-dir
 Session transcripts are stored in `~/.claude/projects/` with the working directory path encoded:
 
 ```bash
-# Example for /Users/yourname/Documents/GitHub/superpowers/superpowers
-SESSION_DIR="$HOME/.claude/projects/-Users-yourname-Documents-GitHub-superpowers-superpowers"
+# Example for /Users/yourname/Documents/GitHub/aerodeck/aerodeck
+SESSION_DIR="$HOME/.claude/projects/-Users-yourname-Documents-GitHub-aerodeck-aerodeck"
 
 # Find recent sessions
 ls -lt "$SESSION_DIR"/*.jsonl | head -5
@@ -182,8 +182,8 @@ ls -lt "$SESSION_DIR"/*.jsonl | head -5
 **Problem**: Skill not found when running headless tests
 
 **Solutions**:
-1. Ensure you're running FROM the superpowers directory: `cd /path/to/superpowers && tests/...`
-2. Check `~/.claude/settings.json` has `"superpowers@superpowers-dev": true` in `enabledPlugins`
+1. Ensure you're running FROM the aerodeck directory: `cd /path/to/aerodeck && tests/...`
+2. Check `~/.claude/settings.json` has `"aerodeck@aerodeck-dev": true` in `enabledPlugins`
 3. Verify skill exists in `skills/` directory
 
 ### Permission Errors
@@ -258,7 +258,7 @@ python3 "$SCRIPT_DIR/analyze-token-usage.py" "$SESSION_FILE"
 1. **Always cleanup**: Use trap to cleanup temp directories
 2. **Parse transcripts**: Don't grep user-facing output - parse the `.jsonl` session file
 3. **Grant permissions**: Use `--permission-mode bypassPermissions` and `--add-dir`
-4. **Run from plugin dir**: Skills only load when running from the superpowers directory
+4. **Run from plugin dir**: Skills only load when running from the aerodeck directory
 5. **Show token usage**: Always include token analysis for cost visibility
 6. **Test real behavior**: Verify actual files created, tests passing, commits made
 
@@ -306,7 +306,7 @@ The `agentId` field links to subagent sessions, and the `usage` field contains t
 
 ### Overview
 
-The Antigravity 2.0 test suite lives at `tests/antigravity/` and validates Superpowers skills on Google DeepMind's Antigravity platform. It mirrors the Claude Code test suite but is adapted for Antigravity's CLI, transcript format, and tool names.
+The Antigravity 2.0 test suite lives at `tests/antigravity/` and validates AeroDeck skills on Google DeepMind's Antigravity platform. It mirrors the Claude Code test suite but is adapted for Antigravity's CLI, transcript format, and tool names.
 
 ### Test Location
 
@@ -328,9 +328,9 @@ tests/antigravity/
 ### Prerequisites
 
 1. **Antigravity CLI** (`agy`) must be installed and on `$PATH`
-2. **Superpowers plugin** symlinked into `~/.gemini/config/plugins/superpowers/`:
+2. **AeroDeck plugin** symlinked into `~/.gemini/config/plugins/aerodeck/`:
    ```bash
-   ln -sfn "$(pwd)" ~/.gemini/config/plugins/superpowers
+   ln -sfn "$(pwd)" ~/.gemini/config/plugins/aerodeck
    ```
 3. **bash** 4.0+ with standard GNU utils (`grep`, `sed`, `timeout`, `jq`)
 

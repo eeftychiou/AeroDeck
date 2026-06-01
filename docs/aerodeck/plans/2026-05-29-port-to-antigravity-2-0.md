@@ -1,8 +1,8 @@
 # Port to Antigravity 2.0 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use aerodeck:subagent-driven-development (recommended) or aerodeck:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Port the Superpowers skills framework and workspace files to fully support Google Antigravity 2.0 parallel subagents, plugin architecture, and updated tool names.
+**Goal:** Port the AeroDeck skills framework and workspace files to fully support Google Antigravity 2.0 parallel subagents, plugin architecture, and updated tool names.
 
 **Architecture:** Add a root `plugin.json` to make the repository a valid project/global Antigravity 2.0 plugin. Create a new `antigravity-tools.md` reference to translate standard tool names to Antigravity equivalents, and update skill templates to utilize the native `invoke_subagent` (running `self`) parallel orchestration parameters.
 
@@ -20,7 +20,7 @@
   Write the following content to `plugin.json`:
   ```json
   {
-    "name": "superpowers",
+    "name": "aerodeck",
     "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
     "version": "6.0.0"
   }
@@ -39,12 +39,12 @@
 ### Task 2: Create Antigravity 2.0 Tool Mapping Reference
 
 **Files:**
-- Create: `skills/using-superpowers/references/antigravity-tools.md`
-- Modify: `skills/using-superpowers/SKILL.md`
+- Create: `skills/using-aerodeck/references/antigravity-tools.md`
+- Modify: `skills/using-aerodeck/SKILL.md`
 
 - [ ] **Step 1: Write antigravity-tools.md reference**
 
-  Create `skills/using-superpowers/references/antigravity-tools.md` with the following content:
+  Create `skills/using-aerodeck/references/antigravity-tools.md` with the following content:
   ```markdown
   # Antigravity 2.0 Tool Mapping
 
@@ -70,10 +70,10 @@
 
   | Skill instruction | Antigravity 2.0 equivalent |
   |-------------------|---------------------------|
-  | `Task tool (superpowers:implementer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Implementer"`, and filled `implementer-prompt.md` |
-  | `Task tool (superpowers:spec-reviewer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Spec Reviewer"`, and filled `spec-reviewer-prompt.md` |
-  | `Task tool (superpowers:code-reviewer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Code Reviewer"`, and filled `code-reviewer.md` |
-  | `Task tool (superpowers:code-quality-reviewer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Code Quality Reviewer"`, and filled `code-quality-reviewer-prompt.md` |
+  | `Task tool (aerodeck:implementer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Implementer"`, and filled `implementer-prompt.md` |
+  | `Task tool (aerodeck:spec-reviewer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Spec Reviewer"`, and filled `spec-reviewer-prompt.md` |
+  | `Task tool (aerodeck:code-reviewer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Code Reviewer"`, and filled `code-reviewer.md` |
+  | `Task tool (aerodeck:code-quality-reviewer)` | `invoke_subagent` with `TypeName: "self"`, `Role: "Code Quality Reviewer"`, and filled `code-quality-reviewer-prompt.md` |
 
   ### Workspace Isolation
 
@@ -83,9 +83,9 @@
   - `Workspace: "share"` - shares the directory but allows independent branching (like a worktree).
   ```
 
-- [ ] **Step 2: Modify skills/using-superpowers/SKILL.md to link reference**
+- [ ] **Step 2: Modify skills/using-aerodeck/SKILL.md to link reference**
 
-  Replace lines 38-40 in `skills/using-superpowers/SKILL.md`:
+  Replace lines 38-40 in `skills/using-aerodeck/SKILL.md`:
   ```markdown
   ## Platform Adaptation
 
@@ -96,7 +96,7 @@
 
   Run:
   ```bash
-  git add skills/using-superpowers/SKILL.md skills/using-superpowers/references/antigravity-tools.md
+  git add skills/using-aerodeck/SKILL.md skills/using-aerodeck/references/antigravity-tools.md
   git commit -m "docs: add Antigravity 2.0 tool mapping references"
   ```
 

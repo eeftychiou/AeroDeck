@@ -1,28 +1,28 @@
 # Antigravity 2.0 Test Suite
 
-Testing Superpowers skills on the Antigravity 2.0 platform (Google DeepMind's agentic coding assistant).
+Testing AeroDeck skills on the Antigravity 2.0 platform (Google DeepMind's agentic assistant).
 
 ## Overview
 
-This test suite validates that Superpowers skills work correctly on Antigravity 2.0, covering:
+This test suite validates that AeroDeck skills work correctly on Antigravity 2.0, covering:
 
-- **Plugin discovery** — Verifies Antigravity loads the superpowers plugin and exposes skills
+- **Plugin discovery** — Verifies Antigravity loads the aerodeck plugin and exposes skills
 - **Skill triggering** — Tests that naive prompts trigger the correct skill (reuses prompts from `tests/skill-triggering/prompts/`)
-- **Subagent dispatch** — Validates the `subagent-driven-development` workflow using `invoke_subagent`
+- **Subagent dispatch** — Validates the `subagent-driven-task-pipeline` workflow using `invoke_subagent`
 - **Tool mapping accuracy** — Static validation that `antigravity-tools.md` references only valid tools
 - **Workspace isolation** — Confirms worktree/branch workspace guidance works
 
 ## Prerequisites
 
 1. **Antigravity CLI** (`agy`) must be installed and available on `$PATH`
-2. **Superpowers plugin** must be symlinked or copied into `~/.gemini/config/plugins/superpowers/`
+2. **AeroDeck plugin** must be symlinked or copied into `~/.gemini/config/plugins/aerodeck/`
 3. **bash** 4.0+ with standard GNU utils (`grep`, `sed`, `timeout`, `jq`)
 
 ### Plugin Installation
 
 ```bash
 # Symlink from repo root:
-ln -sfn "$(pwd)" ~/.gemini/config/plugins/superpowers
+ln -sfn "$(pwd)" ~/.gemini/config/plugins/aerodeck
 ```
 
 ## How to Run Tests
@@ -152,7 +152,7 @@ If not installed, the test scripts will detect this and print a helpful error me
 
 1. Check the plugin symlink exists:
    ```bash
-   ls -la ~/.gemini/config/plugins/superpowers/
+   ls -la ~/.gemini/config/plugins/aerodeck/
    ```
 2. Verify `plugin.json` is present in the plugin directory
 3. Look for plugin loading errors in Antigravity output

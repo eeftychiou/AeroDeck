@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test: Plugin Discovery
-# Verifies that Antigravity loads the superpowers plugin and exposes skills
+# Verifies that Antigravity loads the aerodeck plugin and exposes skills
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -79,7 +79,7 @@ echo ""
 
 FAILED=0
 
-# Check that the output mentions superpowers-related skills
+# Check that the output mentions aerodeck-related skills
 assert_contains "$OUTPUT" "aerodeck" "Output mentions 'aerodeck'" || FAILED=$((FAILED + 1))
 
 # Check for key skill names in the output
