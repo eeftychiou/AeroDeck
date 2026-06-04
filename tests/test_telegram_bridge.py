@@ -3,6 +3,7 @@ Unit tests for the Telegram Bridge security features and handlers.
 """
 
 import os
+import shutil
 import sys
 import unittest
 from unittest.mock import AsyncMock, MagicMock
@@ -20,11 +21,13 @@ class TestTelegramBridgeSecurity(unittest.IsolatedAsyncioTestCase):
         super().setUp()
         self.original_allowed_ids = list(bridge.ALLOWED_IDS)
         self.original_pending_approvals = dict(bridge.pending_approvals)
+        shutil.rmtree("./telegram-workspace", ignore_errors=True)
 
     def tearDown(self) -> None:
         """Tear down test environment."""
         bridge.ALLOWED_IDS = list(self.original_allowed_ids)
         bridge.pending_approvals = dict(self.original_pending_approvals)
+        shutil.rmtree("./telegram-workspace", ignore_errors=True)
         super().tearDown()
 
     async def test_restricted_decorator_allowed(self) -> None:
@@ -207,6 +210,12 @@ class TestTelegramBridgeSecurity(unittest.IsolatedAsyncioTestCase):
             # Verify CallbackQueryHandler is registered
             self.assertTrue(any(isinstance(h, bridge.CallbackQueryHandler) for h in registered_handlers))
 
+            # Verify MessageHandler for documents is registered
+            self.assertTrue(any(
+                isinstance(h, bridge.MessageHandler) and h.callback == bridge.handle_document 
+                for h in registered_handlers
+            ))
+
     async def test_propose_command(self) -> None:
         """Verify propose_command registers the command and sends keyboard markup."""
         mock_context = MagicMock()
@@ -285,6 +294,63 @@ class TestTelegramBridgeSecurity(unittest.IsolatedAsyncioTestCase):
 
         mock_query.answer.assert_called_once_with("Unauthorized", show_alert=True)
         mock_query.edit_message_text.assert_not_called()
+
+    async def test_handle_document_authorized(self) -> None:
+        """Verify that sending a document to an authorized user downloads it and saves it."""
+        bridge.ALLOWED_IDS = [12345]
+        mock_update = MagicMock()
+        mock_update.effective_user.id = 12345
+        mock_update.message = MagicMock()
+        
+        # Configure document info
+        mock_doc = MagicMock()
+        mock_doc.file_id = "file_id_123"
+        mock_doc.file_name = "test_doc.txt"
+        mock_update.message.document = mock_doc
+        mock_update.message.reply_text = AsyncMock()
+
+        # Mock the context, context.bot.get_file(file_id)
+        mock_context = MagicMock()
+        mock_file = AsyncMock()
+        
+        expected_path = os.path.join("./telegram-workspace", "test_doc.txt")
+        
+        async def mock_download(custom_path):
+            os.makedirs(os.path.dirname(custom_path), exist_ok=True)
+            with open(custom_path, "w") as f:
+                f.write("mock content")
+                
+        mock_file.download_to_drive = AsyncMock(side_effect=mock_download)
+        mock_context.bot.get_file = AsyncMock(return_value=mock_file)
+
+        await bridge.handle_document(mock_update, mock_context)
+
+        mock_context.bot.get_file.assert_called_once_with("file_id_123")
+        mock_file.download_to_drive.assert_called_once_with(custom_path=expected_path)
+        self.assertTrue(os.path.exists(expected_path))
+        mock_update.message.reply_text.assert_called_once()
+        self.assertIn("Received and saved file", mock_update.message.reply_text.call_args[0][0])
+
+    async def test_handle_document_denied(self) -> None:
+        """Verify unauthorized users are blocked from uploading documents."""
+        bridge.ALLOWED_IDS = [12345]
+        mock_update = MagicMock()
+        mock_update.effective_user.id = 99999
+        mock_update.message = MagicMock()
+        
+        mock_doc = MagicMock()
+        mock_doc.file_id = "file_id_123"
+        mock_doc.file_name = "test_doc.txt"
+        mock_update.message.document = mock_doc
+        mock_update.message.reply_text = AsyncMock()
+
+        mock_context = MagicMock()
+        mock_context.bot.get_file = AsyncMock()
+
+        await bridge.handle_document(mock_update, mock_context)
+
+        mock_context.bot.get_file.assert_not_called()
+        mock_update.message.reply_text.assert_not_called()
 
 
 if __name__ == "__main__":

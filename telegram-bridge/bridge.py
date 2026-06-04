@@ -6,8 +6,8 @@ import logging
 import os
 from functools import wraps
 from typing import Any, Callable, Coroutine
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Document
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 from dotenv import load_dotenv
 
 # Configure basic logging
@@ -221,6 +221,34 @@ async def handle_approval_callback(update: Update, context: ContextTypes.DEFAULT
         await query.edit_message_text(text=f"Rejected execution of command: {command_id}")
 
 
+@restricted
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Receive a document from the user and save it to the local workspace.
+
+    Args:
+        update: The Telegram Update object.
+        context: The handler context.
+    """
+    if not update.message or not update.message.document:
+        return
+        
+    doc = update.message.document
+    file_id = doc.file_id
+    file_name = doc.file_name
+    
+    if not file_name:
+        file_name = "received_document"
+        
+    new_file = await context.bot.get_file(file_id)
+    
+    workspace_path = "./telegram-workspace"
+    os.makedirs(workspace_path, exist_ok=True)
+    target_path = os.path.join(workspace_path, file_name)
+    await new_file.download_to_drive(custom_path=target_path)
+    
+    await update.message.reply_text(f"Received and saved file: `{file_name}` to workspace.")
+
+
 def main() -> Application:
     """Initialize and build the Telegram Application.
 
@@ -233,6 +261,7 @@ def main() -> Application:
     app.add_handler(CommandHandler("reset", reset_session))
     app.add_handler(CommandHandler("aerodeck", aerodeck_bootstrap))
     app.add_handler(CallbackQueryHandler(handle_approval_callback))
+    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
     return app
 
 
