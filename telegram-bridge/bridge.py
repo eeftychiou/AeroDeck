@@ -6,7 +6,7 @@ import logging
 import os
 from functools import wraps
 from typing import Any, Callable, Coroutine
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Document
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 from dotenv import load_dotenv
 
@@ -234,19 +234,19 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         
     doc = update.message.document
     file_id = doc.file_id
-    file_name = doc.file_name
+    raw_file_name = doc.file_name or "received_document"
+    file_name = os.path.basename(raw_file_name)
     
-    if not file_name:
-        file_name = "received_document"
-        
-    new_file = await context.bot.get_file(file_id)
-    
-    workspace_path = "./telegram-workspace"
-    os.makedirs(workspace_path, exist_ok=True)
-    target_path = os.path.join(workspace_path, file_name)
-    await new_file.download_to_drive(custom_path=target_path)
-    
-    await update.message.reply_text(f"Received and saved file: `{file_name}` to workspace.")
+    try:
+        new_file = await context.bot.get_file(file_id)
+        workspace_path = "./telegram-workspace"
+        os.makedirs(workspace_path, exist_ok=True)
+        target_path = os.path.join(workspace_path, file_name)
+        await new_file.download_to_drive(custom_path=target_path)
+        await update.message.reply_text(f"Received and saved file: `{file_name}` to workspace.")
+    except Exception as e:
+        logger.error("Failed to download document %s: %s", file_name, e)
+        await update.message.reply_text(f"Failed to download and save file: `{file_name}`.")
 
 
 def main() -> Application:
