@@ -7,3 +7,4 @@ inspo
 triage/
 mcp-servers/browser-automation/dist/
 mcp-servers/model-router/dist/
+.env
