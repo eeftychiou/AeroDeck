@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../telegram-bridge')))
 import bridge
 
-class TestTelegramBridgeSecurity(unittest.IsolatedAsyncTestCase):
+class TestTelegramBridgeSecurity(unittest.IsolatedAsyncioTestCase):
     async def test_restricted_decorator_allowed(self):
         bridge.ALLOWED_IDS = [12345]
         mock_update = MagicMock()
