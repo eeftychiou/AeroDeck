@@ -1,6 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { chromium, Browser, Page } from "playwright";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 let browser: Browser | null = null;
 export let activePage: Page | null = null;
@@ -55,3 +56,16 @@ export function setupServer() {
 
   return server;
 }
+
+async function run() {
+  const server = setupServer();
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Browser Automation MCP server running on stdio");
+}
+
+// Start unconditionally when executed
+run().catch((error) => {
+  console.error("Server error:", error);
+  process.exit(1);
+});

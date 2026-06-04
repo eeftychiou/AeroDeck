@@ -9,7 +9,12 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@ai-sdk/anthropic": "^3.0.81",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.67",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ai": "^6.0.196",
+    "dotenv": "^17.4.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

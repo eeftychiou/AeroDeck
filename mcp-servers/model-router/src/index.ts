@@ -1,9 +1,31 @@
+import "dotenv/config";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 
 export async function routeTask(prompt: string, modelTier: string) {
-  // Stub implementation for now
-  return `mock response for ${prompt} using ${modelTier} model`;
+  let model;
+  if (modelTier === "fast") {
+    model = google("models/gemini-1.5-flash");
+  } else if (modelTier === "smart") {
+    model = openai("gpt-4o");
+  } else {
+    model = anthropic("claude-3-5-sonnet-20241022"); // default fallback
+  }
+
+  try {
+    const { text } = await generateText({
+      model,
+      prompt,
+    });
+    return text;
+  } catch (error: any) {
+    return `Error routing task: ${error.message}`;
+  }
 }
 
 export function setupServer() {
@@ -43,4 +65,21 @@ export function setupServer() {
   });
 
   return server;
+}
+
+import { fileURLToPath } from "url";
+
+async function run() {
+  const server = setupServer();
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Model Router MCP server running on stdio");
+}
+
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
+  run().catch((error) => {
+    console.error("Server error:", error);
+    process.exit(1);
+  });
 }
