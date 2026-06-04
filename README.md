@@ -152,6 +152,13 @@ Once installed, AeroDeck skills are available via the **`/using-aerodeck`** slas
 * **writing-skills** - Create new skills following best practices (includes testing methodology)
 * **using-aerodeck** - Introduction to the skills system
 
+### MCP Servers
+
+AeroDeck natively includes robust MCP servers to extend your agent's capabilities out of the box:
+
+* **Model Router** - Dynamically manages and routes requests to external AI models by safely injecting your API keys from a secure `.env` file without polluting the standard input/output channels.
+* **Browser Automation** - Provides comprehensive Playwright-based browser automation, allowing your agent to navigate websites, click elements, fill forms, and interact with web pages either headlessly or visibly.
+
 ## Philosophy
 
 * **Criteria-Driven Refinement** - Write tests first, always
