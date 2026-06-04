@@ -159,6 +159,17 @@ AeroDeck natively includes robust MCP servers to extend your agent's capabilitie
 * **Model Router** - Dynamically manages and routes requests to external AI models by safely injecting your API keys from a secure `.env` file without polluting the standard input/output channels.
 * **Browser Automation** - Provides comprehensive Playwright-based browser automation, allowing your agent to navigate websites, click elements, fill forms, and interact with web pages either headlessly or visibly.
 
+### Telegram Bridge
+
+AeroDeck includes a secure, Python-based Telegram bot bridge daemon that allows you to interface with the local Antigravity/AeroDeck SDK remotely.
+
+* **Strict Whitelisting:** Restricts bot access to whitelisted Telegram user IDs to prevent unauthorized remote access.
+* **Interactive Approvals:** Interactive inline keyboard buttons allow you to approve or reject terminal command execution requests from your phone.
+* **Secure File Ingestion:** Safely uploads and ingests documents directly into your agent's workspace with directory traversal sanitization.
+* **Session Management:** Standard `/start`, `/reset`, and `/aerodeck` commands to manage local execution environments.
+
+See the [Telegram Bridge Setup Guide](file:///c:/Users/User/Antigravity/Gemini Assistant/telegram-bridge/docs/setup.md) to configure and run the bridge daemon.
+
 ## Philosophy
 
 * **Criteria-Driven Refinement** - Write tests first, always
