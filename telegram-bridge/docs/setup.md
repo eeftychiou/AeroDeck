@@ -1,9 +1,24 @@
 # Setup Telegram Bridge
-1. Clone/copy files.
-2. Install dependencies: pip install -r requirements.txt
-3. Copy .env.example to .env and fill in bot token and allowed user IDs.
+1. Navigate to the `telegram-bridge` directory:
+   ```bash
+   cd telegram-bridge
+   ```
+2. Install dependencies inside this directory:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Copy `.env.example` to `.env` inside this directory and fill in the bot token and allowed user IDs:
+   ```bash
+   cp .env.example .env
+   ```
 
 ## Running the Bot
-To run the daemon:
-* On Unix/macOS: `./telegram-bridge/run.sh`
-* On Windows: `python telegram-bridge/bridge.py`
+All run commands should be executed from within the `telegram-bridge` directory:
+* On Unix/macOS:
+  ```bash
+  ./run.sh
+  ```
+* On Windows:
+  ```powershell
+  python bridge.py
+  ```

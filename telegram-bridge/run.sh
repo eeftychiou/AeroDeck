@@ -1,3 +1,5 @@
 #!/bin/bash
 # Start the telegram bridge daemon
-python telegram-bridge/bridge.py
+cd "$(dirname "$0")"
+python bridge.py
+
