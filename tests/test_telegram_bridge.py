@@ -440,6 +440,41 @@ class TestTelegramBridgeSecurity(unittest.IsolatedAsyncioTestCase):
         mock_update.message.reply_text.assert_called_once()
         self.assertIn("Failed to download and save file", mock_update.message.reply_text.call_args[0][0])
 
+    async def test_handle_document_dot_dot_fallback(self) -> None:
+        """Verify that dot or dotdot file name defaults to received_document."""
+        bridge.ALLOWED_IDS = [12345]
+        mock_update = MagicMock()
+        mock_update.effective_user.id = 12345
+        mock_update.message = MagicMock()
+        
+        mock_doc = MagicMock()
+        mock_doc.file_id = "file_id_123"
+        mock_doc.file_name = ".."
+        mock_update.message.document = mock_doc
+        mock_update.message.reply_text = AsyncMock()
+
+        mock_context = MagicMock()
+        mock_file = AsyncMock()
+        
+        expected_path = os.path.join("./telegram-workspace", "received_document")
+        
+        async def mock_download(custom_path):
+            os.makedirs(os.path.dirname(custom_path), exist_ok=True)
+            with open(custom_path, "w") as f:
+                f.write("mock content")
+                
+        mock_file.download_to_drive = AsyncMock(side_effect=mock_download)
+        mock_context.bot.get_file = AsyncMock(return_value=mock_file)
+
+        await bridge.handle_document(mock_update, mock_context)
+
+        mock_context.bot.get_file.assert_called_once_with("file_id_123")
+        mock_file.download_to_drive.assert_called_once_with(custom_path=expected_path)
+        self.assertTrue(os.path.exists(expected_path))
+        mock_update.message.reply_text.assert_called_once()
+        self.assertIn("Received and saved file", mock_update.message.reply_text.call_args[0][0])
+        self.assertIn("received_document", mock_update.message.reply_text.call_args[0][0])
+
 
 if __name__ == "__main__":
     unittest.main()

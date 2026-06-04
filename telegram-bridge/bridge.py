@@ -236,6 +236,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     file_id = doc.file_id
     raw_file_name = doc.file_name or "received_document"
     file_name = os.path.basename(raw_file_name)
+    if not file_name or file_name in (".", ".."):
+        file_name = "received_document"
     
     try:
         new_file = await context.bot.get_file(file_id)
