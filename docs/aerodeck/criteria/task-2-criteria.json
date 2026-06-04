@@ -1,0 +1,3 @@
+{
+  "criteria": "test_telegram_bridge.py validates that messages from non-whitelisted user IDs are rejected, and messages from whitelisted IDs are processed."
+}
