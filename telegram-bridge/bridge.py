@@ -6,8 +6,8 @@ import logging
 import os
 from functools import wraps
 from typing import Any, Callable, Coroutine
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from dotenv import load_dotenv
 
 # Configure basic logging
@@ -162,6 +162,65 @@ async def aerodeck_bootstrap(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text(f"Bootstrap initialized: {res}")
 
 
+# Global/Module level tracker for pending approvals
+pending_approvals: dict[str, str] = {}
+
+
+async def propose_command(chat_id: int, command_id: str, command_string: str, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send a message proposing a command for execution with inline keyboard options.
+
+    Args:
+        chat_id: Telegram Chat ID.
+        command_id: Unique identifier for the command.
+        command_string: The command string proposed for execution.
+        context: The context for the handler/request.
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton("Approve", callback_data=f"approve_{command_id}"),
+            InlineKeyboardButton("Reject", callback_data=f"reject_{command_id}")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    pending_approvals[command_id] = command_string
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"**Command Proposed for Execution:**\n`{command_string}`",
+        reply_markup=reply_markup,
+        parse_mode="Markdown"
+    )
+
+
+async def handle_approval_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Process inline keyboard button clicks for command approval.
+
+    Args:
+        update: The Telegram Update.
+        context: The handler context.
+    """
+    query = update.callback_query
+    if not query or not query.message:
+        return
+    
+    user_id = query.from_user.id
+    if user_id not in ALLOWED_IDS:
+        await query.answer("Unauthorized", show_alert=True)
+        logger.warning("Unauthorized callback attempt from user ID: %s", user_id)
+        return
+        
+    await query.answer()
+    data = query.data
+    if not data:
+        return
+        
+    action, command_id = data.split("_", 1)
+    
+    if action == "approve":
+        await query.edit_message_text(text=f"Approved execution of command: {command_id}")
+    else:
+        await query.edit_message_text(text=f"Rejected execution of command: {command_id}")
+
+
 def main() -> Application:
     """Initialize and build the Telegram Application.
 
@@ -173,6 +232,7 @@ def main() -> Application:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset_session))
     app.add_handler(CommandHandler("aerodeck", aerodeck_bootstrap))
+    app.add_handler(CallbackQueryHandler(handle_approval_callback))
     return app
 
 
