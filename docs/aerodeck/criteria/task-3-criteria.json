@@ -1,0 +1,3 @@
+{
+  "criteria": "Telegram commands /reset and /aerodeck invoke the respective Antigravity SDK session management functions."
+}

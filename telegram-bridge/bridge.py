@@ -87,6 +87,81 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Authorized. Telegram Bridge is active.")
 
 
+class AntigravitySDK:
+    """Stub for the local Antigravity Core SDK client."""
+
+    def __init__(self, url: str) -> None:
+        """Initialize the SDK client.
+
+        Args:
+            url (str): The URL of the Antigravity Core SDK.
+        """
+        self.url = url
+
+    async def reset_session(self, session_id: int) -> bool:
+        """Reset/clear context for a specific Antigravity session.
+
+        Args:
+            session_id (int): The session ID to reset.
+
+        Returns:
+            bool: True if the reset was successful, False otherwise.
+        """
+        # Stub implementation
+        logger.info("Antigravity SDK: Reset session %s", session_id)
+        return True
+
+    async def send_command(self, session_id: int, command: str) -> str:
+        """Send a text command directly to the active Antigravity session.
+
+        Args:
+            session_id (int): The session ID.
+            command (str): The command to send.
+
+        Returns:
+            str: The execution result of the command.
+        """
+        # Stub implementation
+        logger.info("Antigravity SDK: Sending command '%s' to session %s", command, session_id)
+        return f"Executing {command}"
+
+
+sdk = AntigravitySDK(os.getenv("ANTIGRAVITY_SDK_URL", "http://localhost:8000"))
+
+
+@restricted
+async def reset_session(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle the /reset command to reset the active Antigravity session.
+
+    Args:
+        update (Update): The Telegram Update object.
+        context (ContextTypes.DEFAULT_TYPE): The handler context.
+    """
+    if not update.effective_chat or not update.message:
+        return
+    chat_id = update.effective_chat.id
+    success = await sdk.reset_session(chat_id)
+    if success:
+        await update.message.reply_text("Antigravity session reset successfully.")
+    else:
+        await update.message.reply_text("Failed to reset session.")
+
+
+@restricted
+async def aerodeck_bootstrap(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle the /aerodeck command to bootstrap AeroDeck skills.
+
+    Args:
+        update (Update): The Telegram Update object.
+        context (ContextTypes.DEFAULT_TYPE): The handler context.
+    """
+    if not update.effective_chat or not update.message:
+        return
+    chat_id = update.effective_chat.id
+    res = await sdk.send_command(chat_id, "/using-aerodeck")
+    await update.message.reply_text(f"Bootstrap initialized: {res}")
+
+
 def main() -> Application:
     """Initialize and build the Telegram Application.
 
@@ -96,9 +171,12 @@ def main() -> Application:
     token = os.getenv("TELEGRAM_TOKEN", "mock_token")
     app = Application.builder().token(token).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("reset", reset_session))
+    app.add_handler(CommandHandler("aerodeck", aerodeck_bootstrap))
     return app
 
 
 if __name__ == "__main__":
     main().run_polling()
+
 
