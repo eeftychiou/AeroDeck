@@ -1,0 +1,3 @@
+{
+  "criteria": "requirements.txt contains python-telegram-bot and python-dotenv. .env.example contains placeholders for TELEGRAM_TOKEN and ALLOWED_USER_IDS."
+}
