@@ -20,6 +20,7 @@ Guide the completion and delivery of task work by verifying all success criteria
 **Before presenting options, verify that all task checklist verifications are completely passing:**
 - Run local validator scripts, check files in folders, or verify the Chrome browser states.
 - Double-check that no temporary comments, incomplete sections, or draft placeholders are left in the deliverables.
+- Ensure that the repository's top-level or global documentation (such as the main `README.md`) has been updated to reflect the new features, tools, commands, or changes introduced.
 
 **If any checks fail:** Must fix before completing. Stop. Do not proceed to Step 2.
 **If all checks pass:** Continue to Step 2.
