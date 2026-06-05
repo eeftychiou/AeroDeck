@@ -41,7 +41,7 @@ These are independent. Working on Company X does not impact Company Y.
 Specify for each:
 - **TypeName:** `"self"` or `"worker"` (if defined)
 - **Role:** Specific to the task (e.g., `"Company X Writer"`)
-- **Workspace:** `"branch"` (to branch git and isolate files automatically!)
+- **Workspace:** `"branch"` (to create an isolated workspace automatically!)
 - **Prompt:** Precise instructions, context, success criteria, and targets.
 
 ### 3. Parallel Dispatch via invoke_subagent
@@ -72,5 +72,5 @@ Call `invoke_subagent` once with multiple entries in the `Subagents` array. This
 When the concurrent subagents report back:
 - Read each subagent's execution summary.
 - Verify deliverables are created correctly.
-- Review and merge their branches locally (git merge).
+- Review and integrate their deliverables locally.
 - Complete the delivery pipeline.

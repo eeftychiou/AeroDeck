@@ -60,7 +60,7 @@ After all tasks are completed and verified:
 - Don't skip verifications
 - Reference skills when the plan says to
 - Stop when blocked, don't guess
-- Never start implementation on the main branch without explicit user consent
+- Never start execution in the primary workspace or live environment without explicit user consent or isolation
 
 ## Integration
 

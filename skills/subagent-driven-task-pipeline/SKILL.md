@@ -27,7 +27,7 @@ Depending on the task domain, select and dispatch the appropriate pipeline confi
 1. **Worker/Operator:** Fills out forms in Chrome, extracts e-document text, or triages files.
 2. **Accuracy Reviewer (Data Integrity):** Verifies that filled form fields or extracted metadata match source documents *exactly*.
 3. **Logic/Rules Reviewer (Routing & Policy):** Verifies that classification and assignment follow specified business rules.
-4. **Final Approver (Execution & Submission):** Performs the final commit or submit action (e.g. clicking "Submit Application" or writing a routing log).
+4. **Final Approver (Execution & Submission):** Performs the final save or submit action (e.g. clicking "Submit Application" or writing a routing log).
 
 ---
 

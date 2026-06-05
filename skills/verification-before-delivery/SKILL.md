@@ -51,7 +51,7 @@ Skip any step = lying, not verifying
 
 - Using "should", "probably", "seems to"
 - Expressing satisfaction before verification ("Great!", "Perfect!", "Done!", etc.)
-- About to commit/push/submit without verification
+- About to finalize/deliver/submit without verification
 - Relying on partial verification
 - Thinking "just this once"
 
@@ -83,7 +83,7 @@ Skip any step = lying, not verifying
 - ANY variation of success/completion/delivery claims
 - ANY expression of satisfaction
 - ANY positive statement about task state
-- Committing, PR creation, task completion
+- Finalizing, delivery, task completion
 - Moving to the next task
 
 ## The Bottom Line

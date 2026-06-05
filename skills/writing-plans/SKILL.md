@@ -7,7 +7,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 ## Overview
 
-Write comprehensive implementation plans assuming the worker has zero context for our project and questionable taste. Document everything they need to know: which files, folders, or web elements to touch for each task, text, scripts, and validation criteria. Give them the whole plan as bite-sized tasks. DRY. YAGNI. CDR (Criteria-Driven Refinement). Frequent commits/saves.
+Write comprehensive implementation plans assuming the worker has zero context for our project and questionable taste. Document everything they need to know: which files, folders, or web elements to touch for each task, text, scripts, and validation criteria. Give them the whole plan as bite-sized tasks. DRY. YAGNI. CDR (Criteria-Driven Refinement). Frequent saves/checkpoints.
 
 Assume they are a skilled worker, but know almost nothing about our toolset or problem domain. Assume they don't know good verification design very well.
 
@@ -46,7 +46,7 @@ Define how each task step is verified. Do not just say "check if it works". Spec
 - "Run the validator / check the state to make sure it fails" - step
 - "Perform minimal worker action or write minimal content to make it pass" - step
 - "Run the validator / verify state to make sure it passes" - step
-- "Commit/Save" - step
+- "Save/Checkpoint" - step
 
 ## Plan Document Header
 
@@ -104,11 +104,11 @@ Write minimal content or run form filler:
 Run: `node scripts/check-billing.js` or inspect folder `C:/inbox/billing`
 Expected: PASS (File exists and contains INV-1002)
 
-- [ ] **Step 5: Commit/Save**
+- [ ] **Step 5: Save/Checkpoint**
 
 ```bash
-git add docs/aerodeck/criteria/task-N-criteria.json exact/path/to/document.md
-git commit -m "feat: complete billing document task"
+# Save your work to the required location, e.g. copying out of sandbox or finalizing local files
+cp .sandbox/task-N/document.md exact/path/to/document.md
 ```
 ````
 
@@ -125,7 +125,7 @@ Every step must contain the actual content a worker needs. These are **plan fail
 - Exact paths and selectors always
 - Complete content/code in every step — if a step changes text/code, show it
 - Exact commands with expected outcomes
-- DRY, YAGNI, Criteria-Driven Refinement, frequent commits/saves
+- DRY, YAGNI, Criteria-Driven Refinement, frequent saves/checkpoints
 
 ## Self-Review
 

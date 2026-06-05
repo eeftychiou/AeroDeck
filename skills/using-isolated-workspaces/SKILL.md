@@ -1,15 +1,15 @@
 ---
 name: using-isolated-workspaces
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native branch parameter or git worktree fallback
+description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native isolation parameters or sandbox directory fallback
 ---
 
 # Using Isolated Workspaces
 
 ## Overview
 
-Ensure task execution happens in an isolated workspace. Prefer your platform's native isolation tools (such as Antigravity's branch workspace option). Fall back to manual git worktrees only when no native tool is available.
+Ensure task execution happens in an isolated workspace. Prefer your platform's native isolation tools (such as Antigravity's branch workspace option). Fall back to manual sandbox directories only when no native tool is available.
 
-**Core principle:** Detect existing isolation first. Then use native tools. Then fall back to git. Never fight the harness.
+**Core principle:** Detect existing isolation first. Then use native tools. Then fall back to manual sandboxing. Never fight the harness.
 
 **Announce at start:** "I'm using the using-isolated-workspaces skill to set up an isolated workspace."
 
@@ -17,18 +17,14 @@ Ensure task execution happens in an isolated workspace. Prefer your platform's n
 
 **Before creating anything, check if you are already in an isolated workspace.**
 
-```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-BRANCH=$(git branch --show-current)
-```
+**Check your current directory and environment variables.**
 
-**If `GIT_DIR != GIT_COMMON` (and not a submodule):** You are already in a linked worktree/isolated workspace. Skip to Step 3 (Workspace Setup). Do NOT create another worktree.
+**If you detect you are already in an isolated environment or sandbox directory:** Skip to Step 3 (Workspace Setup). Do NOT create another isolated environment.
 
-Report with branch state:
-- On a branch: "Already in isolated workspace at `<path>` on branch `<name>`."
+Report with workspace state:
+- In isolated workspace: "Already in isolated workspace at `<path>`."
 
-**If `GIT_DIR == GIT_COMMON`:** You are in a normal repository checkout.
+**If you are in the main workspace:** You are in the primary environment.
 
 Check if isolation has already been declared or consented. In Antigravity 2.0, when launching subagents via `invoke_subagent`, setting `Workspace: "branch"` automatically handles isolated workspace creation natively. If executing inline, ask for consent:
 
@@ -40,17 +36,17 @@ Check if isolation has already been declared or consented. In Antigravity 2.0, w
 
 In **Antigravity 2.0**, use the `"Workspace": "branch"` parameter when calling `invoke_subagent`. This is the native, extremely clean way to create isolated workspaces. It branches the project repository and isolatively spawns the subagent, ensuring zero environment pollution. If using subagents, always use this native feature.
 
-### 1b. Git Worktree Fallback
+### 1b. Manual Sandbox Fallback
 
 **Only use this if executing tasks inline in a single session without subagents.**
 
-Create a worktree manually using git:
-1. Default to `.worktrees/` at the project root.
-2. Verify directory is ignored by git (`git check-ignore -q .worktrees`). If not, add it to `.gitignore` first.
-3. Run:
+Create a temporary isolated directory:
+1. Default to a `.sandbox/` or `.temp/` folder at the workspace root.
+2. Ensure the sandbox is excluded from any final deliverables or synchronization.
+3. Create the directory, copy necessary context into it, and `cd` into it:
    ```bash
-   git worktree add .worktrees/$BRANCH_NAME -b $BRANCH_NAME
-   cd .worktrees/$BRANCH_NAME
+   mkdir -p .sandbox/$TASK_NAME
+   cd .sandbox/$TASK_NAME
    ```
 
 ---
