@@ -1,0 +1,20 @@
+{
+  "name": "google-drive-mcp",
+  "version": "1.0.0",
+  "description": "Google Drive API MCP server",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "dotenv": "^16.4.5",
+    "googleapis": "^140.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "typescript": "^5.5.2"
+  }
+}
