@@ -10,4 +10,6 @@ mcp-servers/model-router/dist/
 mcp-servers/google-drive/dist/
 mcp-servers/google-drive/token.json
 mcp-servers/google-drive/.env
+scripts/setup/dist/
+scripts/setup/node_modules/
 .env

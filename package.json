@@ -2,5 +2,8 @@
   "name": "aerodeck",
   "version": "5.1.0",
   "type": "module",
-  "main": ".opencode/plugins/aerodeck.js"
+  "main": ".opencode/plugins/aerodeck.js",
+  "scripts": {
+    "setup": "npm --prefix scripts/setup install && npm --prefix scripts/setup run start"
+  }
 }
