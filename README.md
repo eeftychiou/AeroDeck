@@ -158,6 +158,7 @@ AeroDeck natively includes robust MCP servers to extend your agent's capabilitie
 
 * **Model Router** - Dynamically manages and routes requests to external AI models by safely injecting your API keys from a secure `.env` file without polluting the standard input/output channels.
 * **Browser Automation** - Provides comprehensive Playwright-based browser automation, allowing your agent to navigate websites, click elements, fill forms, and interact with web pages either headlessly or visibly.
+* **Google Drive** - Provides robust cloud integration to search filenames and contents, read Google Docs as plain text, and download binary files locally. See the [Google Drive Setup Guide](file:///c:/Users/User/Antigravity/Gemini%20Assistant/mcp-servers/google-drive/README.md) for configuration instructions.
 
 ### Telegram Bridge
 
