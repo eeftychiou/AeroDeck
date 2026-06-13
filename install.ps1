@@ -19,9 +19,11 @@ Copy-Item -Recurse -Path ".\agents" -Destination $pluginDir -ErrorAction Silentl
 $cwd = (Get-Location).Path
 $browserServerPath = Join-Path $cwd "mcp-servers\browser-automation\dist\src\index.js"
 $routerServerPath = Join-Path $cwd "mcp-servers\model-router\dist\index.js"
+$driveServerPath = Join-Path $cwd "mcp-servers\google-drive\dist\index.js"
 
 $browserServerPath = $browserServerPath -replace '\\', '/'
 $routerServerPath = $routerServerPath -replace '\\', '/'
+$driveServerPath = $driveServerPath -replace '\\', '/'
 
 $mcpConfig = @{ mcpServers = @{} }
 if (Test-Path $mcpConfigFile) {
@@ -54,6 +56,17 @@ if ($null -eq $mcpConfig.mcpServers."model-router") {
     $mcpConfig.mcpServers | Add-Member -MemberType NoteProperty -Name "model-router" -Value $routerProps
 } else {
     $mcpConfig.mcpServers."model-router" = $routerProps
+}
+
+# Update google drive server
+$driveProps = @{
+    "command" = "node"
+    "args" = @($driveServerPath)
+}
+if ($null -eq $mcpConfig.mcpServers."google-drive") {
+    $mcpConfig.mcpServers | Add-Member -MemberType NoteProperty -Name "google-drive" -Value $driveProps
+} else {
+    $mcpConfig.mcpServers."google-drive" = $driveProps
 }
 
 $mcpConfig | ConvertTo-Json -Depth 10 | Set-Content $mcpConfigFile
