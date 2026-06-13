@@ -6,7 +6,11 @@ AeroDeck natively supports the **Google Antigravity 2.0** platform, featuring a 
 
 ## Quickstart
 
-Give your agent AeroDeck: [Antigravity 2.0 (IDE/CLI)](#antigravity-20-idecli).
+1. Give your agent AeroDeck: [Antigravity 2.0 (IDE/CLI)](#antigravity-20-idecli).
+2. Run the interactive setup wizard to automatically configure API keys and register MCP servers:
+   ```bash
+   npm run setup
+   ```
 
 ## How it works
 
@@ -97,7 +101,11 @@ If you run the **Windows Antigravity IDE** but your workspace is in **WSL**, the
 
 #### Activation
 
-Once installed, AeroDeck skills are available via the **`/using-aerodeck`** slash command in Antigravity 2.0 and Antigravity IDE. For the Antigravity CLI, the command is **`/aerodeck:using-aerodeck`**. Type the appropriate command at the start of a session to activate the skill system. *(Note: If you have Antigravity open during install, restart the application to ensure the plugin is scanned and loaded).* The agent will load the bootstrap and tool mapping, then brainstorming, TDD, subagent-driven-task-pipeline, and all other skills will trigger automatically for the rest of the session.
+1. Run the interactive setup wizard from the project directory to configure your API keys, authorize Google Drive, and register the MCP servers:
+   ```bash
+   npm run setup
+   ```
+2. AeroDeck skills are available via the **`/using-aerodeck`** slash command in Antigravity 2.0 and Antigravity IDE. For the Antigravity CLI, the command is **`/aerodeck:using-aerodeck`**. Type the appropriate command at the start of a session to activate the skill system. *(Note: If you have Antigravity open during install, restart the application to ensure the plugin is scanned and loaded).* The agent will load the bootstrap and tool mapping, then brainstorming, TDD, subagent-driven-task-pipeline, and all other skills will trigger automatically for the rest of the session.
 
 
 
