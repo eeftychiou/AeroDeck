@@ -155,6 +155,14 @@ If you run the **Windows Antigravity IDE** but your workspace is in **WSL**, the
 * **completing-a-task-pipeline** - Merge/PR decision workflow
 * **subagent-driven-task-pipeline** - Fast iteration with two-stage review (spec compliance, then code quality)
 
+**General Assistant / Operations**
+
+* **systematic-research** - Fact-checking, source matrix verification, and confidence ratings
+* **document-drafting** - Profile-driven professional communication and BLUF layouts
+* **document-synthesis** - Cross-referencing files from Google Drive and web findings
+* **data-processing** - Programmatic tabular data (CSV/TSV/Excel) calculation/sanitization
+* **transcript-processing** - Meeting and log summarization, audio/video transcription, and action item extraction
+
 **Meta**
 
 * **writing-skills** - Create new skills following best practices (includes testing methodology)

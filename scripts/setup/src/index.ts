@@ -134,7 +134,29 @@ async function run() {
     }
   }
 
-  // 3. Register with install script
+  // 3. System Environment Checks
+  console.log(chalk.yellow("Running system environment diagnostics..."));
+  try {
+    const pythonCheck = execSync("python --version", { encoding: "utf-8" });
+    console.log(chalk.green(`✔ Python detected: ${pythonCheck.trim()}`));
+  } catch (e) {
+    try {
+      const python3Check = execSync("python3 --version", { encoding: "utf-8" });
+      console.log(chalk.green(`✔ Python 3 detected: ${python3Check.trim()}`));
+    } catch (err) {
+      console.log(chalk.red("✖ Python is not detected in your PATH. Please install Python to run data-processing and transcript-processing skills."));
+    }
+  }
+
+  try {
+    execSync(process.platform === "win32" ? "where ffmpeg" : "which ffmpeg", { stdio: "ignore" });
+    console.log(chalk.green("✔ ffmpeg detected (required for video/audio processing)."));
+  } catch (e) {
+    console.log(chalk.yellow("⚠ ffmpeg is not detected in your PATH. Video-to-audio extraction will fail. Please install ffmpeg."));
+  }
+  console.log("");
+
+  // 4. Register with install script
   console.log(chalk.yellow("Registering MCP servers in mcp_config.json..."));
   try {
     if (process.platform === "win32") {
