@@ -13,3 +13,5 @@ mcp-servers/google-drive/.env
 scripts/setup/dist/
 scripts/setup/node_modules/
 .env
+__pycache__/
+*.pyc
