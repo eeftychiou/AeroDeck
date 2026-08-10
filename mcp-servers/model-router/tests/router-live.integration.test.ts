@@ -9,13 +9,13 @@ describe('Model Router Live API Tests', () => {
   const runIfMiniMax = hasMiniMax ? it : it.skip;
 
   runIfDeepSeek('should execute live routeTask call using DeepSeek API key', async () => {
-    const response = await routeTask('Hello, respond with OK', 'deepseek');
+    const response = await routeTask('Hello, respond with OK', 'deepseek', 'deepseek-v4-flash');
     expect(typeof response).toBe('string');
     expect(response).not.toContain('Error routing task');
   });
 
   runIfMiniMax('should execute live routeTask call using MiniMax API key', async () => {
-    const response = await routeTask('Hello, respond with OK', 'minimax');
+    const response = await routeTask('Hello, respond with OK', 'minimax', 'minimax-M3');
     expect(typeof response).toBe('string');
     expect(response).not.toContain('Error routing task');
   });
