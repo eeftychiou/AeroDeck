@@ -67,15 +67,15 @@ export async function routeTask(prompt: string, modelTier: string = "smart", mod
     const lowerTarget = target.toLowerCase();
 
     if (lowerTarget.includes("minimax") || lowerTarget.startsWith("abab")) {
-      const selectedModel = explicitModel || (lowerTarget === "minimax" || lowerTarget === "fast" ? (routerConfig?.tiers?.fast?.model || "MiniMax-Text-01") : target);
+      const selectedModel = explicitModel || (lowerTarget === "minimax" || lowerTarget === "fast" ? (routerConfig?.tiers?.fast?.model || "minimax-M3") : target);
       model = minimax(selectedModel);
     } else if (lowerTarget.includes("deepseek")) {
-      const selectedModel = explicitModel || (lowerTarget === "deepseek" || lowerTarget === "smart" ? (routerConfig?.tiers?.smart?.model || "deepseek-chat") : target);
+      const selectedModel = explicitModel || (lowerTarget === "deepseek" || lowerTarget === "smart" ? (routerConfig?.tiers?.smart?.model || "deepseek-v4-flash") : target);
       model = deepseek(selectedModel);
     } else if (lowerTarget === "fast") {
-      model = minimax(explicitModel || routerConfig?.tiers?.fast?.model || "MiniMax-Text-01");
+      model = minimax(explicitModel || routerConfig?.tiers?.fast?.model || "minimax-M3");
     } else {
-      model = deepseek(explicitModel || target || routerConfig?.default_model || "deepseek-chat");
+      model = deepseek(explicitModel || target || routerConfig?.default_model || "deepseek-v4-flash");
     }
   }
 
@@ -83,6 +83,11 @@ export async function routeTask(prompt: string, modelTier: string = "smart", mod
     const { text } = await generateText({
       model,
       prompt,
+      providerOptions: {
+        openai: {
+          reasoningEffort: "high",
+        },
+      },
     });
     return text;
   } catch (error: any) {
@@ -101,13 +106,13 @@ export function setupServer() {
       tools: [
         {
           name: "route_task",
-          description: "Route a task to a specified model tier or exact model name (e.g. deepseek-chat, deepseek-reasoner, MiniMax-Text-01, minimax-M3)",
+          description: "Route a task to a specified model tier or exact model name (e.g. deepseek-v4-flash, minimax-M3)",
           inputSchema: {
             type: "object",
             properties: {
               prompt: { type: "string", description: "Prompt or instruction to send to the model" },
               modelTier: { type: "string", description: "Model tier: 'fast', 'smart', 'deepseek', 'minimax'" },
-              modelName: { type: "string", description: "Exact model ID, e.g., 'deepseek-chat', 'deepseek-reasoner', 'MiniMax-Text-01', 'minimax-M3'" }
+              modelName: { type: "string", description: "Exact model ID, e.g., 'deepseek-v4-flash', 'minimax-M3'" }
             },
             required: ["prompt"]
           }
