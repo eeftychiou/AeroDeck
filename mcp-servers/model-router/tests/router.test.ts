@@ -5,7 +5,8 @@ jest.unstable_mockModule("ai", () => ({
 }));
 
 jest.unstable_mockModule("@ai-sdk/openai", () => ({
-  openai: jest.fn()
+  openai: jest.fn(),
+  createOpenAI: jest.fn().mockReturnValue(jest.fn())
 }));
 
 jest.unstable_mockModule("@ai-sdk/anthropic", () => ({
