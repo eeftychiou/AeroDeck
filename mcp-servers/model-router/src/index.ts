@@ -24,31 +24,59 @@ import { openai, createOpenAI } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 
+const configPath = path.resolve(__dirname, "../config.json");
+let routerConfig: any = null;
+if (fs.existsSync(configPath)) {
+  try {
+    routerConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  } catch (e) {
+    console.error("Failed to parse config.json:", e);
+  }
+}
+
+const deepseekBaseURL = routerConfig?.providers?.deepseek?.baseURL || "https://api.deepseek.com";
+const minimaxBaseURL = routerConfig?.providers?.minimax?.baseURL || "https://api.minimaxi.chat/v1";
+
 const deepseek = createOpenAI({
-  baseURL: "https://api.deepseek.com",
+  baseURL: deepseekBaseURL,
   apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
 const minimax = createOpenAI({
-  baseURL: "https://api.minimaxi.chat/v1",
+  baseURL: minimaxBaseURL,
   apiKey: process.env.MINIMAX_API_KEY,
 });
 
 export async function routeTask(prompt: string, modelTier: string = "smart", modelName?: string) {
-  const target = (modelName || modelTier || "").trim();
-  const lowerTarget = target.toLowerCase();
+  const targetTier = (modelTier || "").trim().toLowerCase();
+  const explicitModel = (modelName || "").trim();
   let model;
 
-  if (lowerTarget.includes("minimax") || lowerTarget.startsWith("abab")) {
-    const selectedModel = modelName || (lowerTarget === "minimax" || lowerTarget === "fast" ? "MiniMax-Text-01" : target);
-    model = minimax(selectedModel);
-  } else if (lowerTarget.includes("deepseek")) {
-    const selectedModel = modelName || (lowerTarget === "deepseek" || lowerTarget === "smart" ? "deepseek-chat" : target);
-    model = deepseek(selectedModel);
-  } else if (lowerTarget === "fast") {
-    model = minimax(modelName || "MiniMax-Text-01");
-  } else {
-    model = deepseek(modelName || target || "deepseek-chat");
+  if (routerConfig && routerConfig.tiers && routerConfig.tiers[targetTier]) {
+    const tierConfig = routerConfig.tiers[targetTier];
+    const targetModel = explicitModel || tierConfig.model;
+    if (tierConfig.provider === "minimax") {
+      model = minimax(targetModel);
+    } else if (tierConfig.provider === "deepseek") {
+      model = deepseek(targetModel);
+    }
+  }
+
+  if (!model) {
+    const target = (explicitModel || modelTier || "").trim();
+    const lowerTarget = target.toLowerCase();
+
+    if (lowerTarget.includes("minimax") || lowerTarget.startsWith("abab")) {
+      const selectedModel = explicitModel || (lowerTarget === "minimax" || lowerTarget === "fast" ? (routerConfig?.tiers?.fast?.model || "MiniMax-Text-01") : target);
+      model = minimax(selectedModel);
+    } else if (lowerTarget.includes("deepseek")) {
+      const selectedModel = explicitModel || (lowerTarget === "deepseek" || lowerTarget === "smart" ? (routerConfig?.tiers?.smart?.model || "deepseek-chat") : target);
+      model = deepseek(selectedModel);
+    } else if (lowerTarget === "fast") {
+      model = minimax(explicitModel || routerConfig?.tiers?.fast?.model || "MiniMax-Text-01");
+    } else {
+      model = deepseek(explicitModel || target || routerConfig?.default_model || "deepseek-chat");
+    }
   }
 
   try {

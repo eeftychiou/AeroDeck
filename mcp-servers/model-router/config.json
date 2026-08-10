@@ -1,0 +1,34 @@
+{
+  "default_model": "deepseek-chat",
+  "tiers": {
+    "fast": {
+      "provider": "minimax",
+      "model": "MiniMax-Text-01"
+    },
+    "smart": {
+      "provider": "deepseek",
+      "model": "deepseek-chat"
+    },
+    "reasoning": {
+      "provider": "deepseek",
+      "model": "deepseek-reasoner"
+    }
+  },
+  "providers": {
+    "deepseek": {
+      "baseURL": "https://api.deepseek.com",
+      "apiKeyEnv": "DEEPSEEK_API_KEY",
+      "defaultModel": "deepseek-chat"
+    },
+    "minimax": {
+      "baseURL": "https://api.minimaxi.chat/v1",
+      "apiKeyEnv": "MINIMAX_API_KEY",
+      "defaultModel": "MiniMax-Text-01"
+    },
+    "openrouter": {
+      "baseURL": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "defaultModel": "openai/gpt-4o-mini"
+    }
+  }
+}
