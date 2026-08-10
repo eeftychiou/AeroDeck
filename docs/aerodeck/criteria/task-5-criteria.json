@@ -1,3 +1,3 @@
 {
-  "criteria": "Incoming document handler successfully saves sent files to the mock local workspace directory."
+  "criteria": "docs/README.md exists and indexes all 15 design specs and 17 execution plans in docs/aerodeck/ with file descriptions and dates."
 }

@@ -1,6 +1,6 @@
 # Testing AeroDeck Skills
 
-This document describes how to test AeroDeck skills, particularly the integration tests for complex skills like `subagent-driven-development`.
+This document describes how to test AeroDeck skills, particularly the integration tests for complex skills like `subagent-driven-task-pipeline`.
 
 ## Overview
 
@@ -12,7 +12,7 @@ Testing skills that involve subagents, workflows, and complex interactions requi
 tests/
 ├── claude-code/
 │   ├── test-helpers.sh                    # Shared test utilities
-│   ├── test-subagent-driven-development-integration.sh
+│   ├── test-subagent-driven-task-pipeline-integration.sh
 │   ├── analyze-token-usage.py             # Token analysis tool
 │   └── run-skill-tests.sh                 # Test runner (if exists)
 ```
@@ -24,9 +24,9 @@ tests/
 Integration tests execute real Claude Code sessions with actual skills:
 
 ```bash
-# Run the subagent-driven-development integration test
+# Run the subagent-driven-task-pipeline integration test
 cd tests/claude-code
-./test-subagent-driven-development-integration.sh
+./test-subagent-driven-task-pipeline-integration.sh
 ```
 
 **Note:** Integration tests can take 10-30 minutes as they execute real implementation plans with multiple subagents.
@@ -37,11 +37,11 @@ cd tests/claude-code
 - Claude Code must be installed and available as `claude` command
 - Local dev marketplace must be enabled: `"aerodeck@aerodeck-dev": true` in `~/.claude/settings.json`
 
-## Integration Test: subagent-driven-development
+## Integration Test: subagent-driven-task-pipeline
 
 ### What It Tests
 
-The integration test verifies the `subagent-driven-development` skill correctly:
+The integration test verifies the `subagent-driven-task-pipeline` skill correctly:
 
 1. **Plan Loading**: Reads the plan once at the beginning
 2. **Full Task Text**: Provides complete task descriptions to subagents (doesn't make them read files)
@@ -67,7 +67,7 @@ The integration test verifies the `subagent-driven-development` skill correctly:
 
 ```
 ========================================
- Integration Test: subagent-driven-development
+ Integration Test: subagent-driven-task-pipeline
 ========================================
 
 Test project: /tmp/tmp.xyz123
@@ -75,7 +75,7 @@ Test project: /tmp/tmp.xyz123
 === Verification Tests ===
 
 Test 1: Skill tool invoked...
-  [PASS] subagent-driven-development skill was invoked
+  [PASS] subagent-driven-task-pipeline skill was invoked
 
 Test 2: Subagents dispatched...
   [PASS] 7 subagents dispatched

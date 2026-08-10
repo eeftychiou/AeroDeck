@@ -15,6 +15,28 @@ Skills use Claude Code tool names. When you encounter these in a skill, use your
 | `WebSearch` | `search_web` (critical for browsing page details or factual research) |
 | `WebFetch` | `read_url_content` / Chrome browser integration |
 | `Task` tool (dispatch subagent) | `invoke_subagent` (see [Subagent support](#subagent-support)) |
+| `BrowserAutomation` / Web interactions | `browser-automation` MCP (`navigate`, `get_content`, `click_element`, `fill_element`) |
+| `ModelRouter` / LLM task routing | `model-router` MCP (`route_task`) |
+| `GoogleDrive` / Cloud doc search & fetch | `google-drive` MCP (`search_files`, `read_doc`, `download_file`) |
+| `OutlookSearch` / Local mailbox search | `run_command` executing `scripts/outlook-search.ps1` |
+
+## Custom MCP Server Tools
+
+AeroDeck integrates custom Model Context Protocol (MCP) servers to extend agent capabilities:
+
+| Server | Tools | Purpose |
+|--------|-------|---------|
+| `browser-automation` | `navigate`, `get_content`, `click_element`, `fill_element` | Headless Playwright browser automation for web navigation, content extraction, and form interaction. |
+| `model-router` | `route_task` | Dynamic routing of subagent prompts to optimal LLM model backends based on task complexity. |
+| `google-drive` | `search_files`, `read_doc`, `download_file` | Cloud document discovery, reading, and asset downloading from Google Drive repositories. |
+
+## Script Tools
+
+AeroDeck provides standalone automation scripts accessible via `run_command`:
+
+| Script / Tool | Location | Purpose |
+|---------------|----------|---------|
+| `outlook-search` | `scripts/outlook-search.ps1` | MAPI COM PowerShell script for querying local Outlook mailboxes, searching emails, and extracting attachments. |
 
 ## Subagent support
 

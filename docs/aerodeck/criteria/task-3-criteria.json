@@ -1,3 +1,1 @@
-{
-  "criteria": "Telegram commands /reset and /aerodeck invoke the respective Antigravity SDK session management functions."
-}
+{"criteria": "telegram-bridge/docs/setup.md documents whitelist security, interactive button approvals, and remote commands (/reset, /aerodeck); docs/testing.md renames subagent-driven-development to subagent-driven-task-pipeline."}

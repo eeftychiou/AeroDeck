@@ -1,3 +1,3 @@
 {
-  "criteria": "test_telegram_bridge.py validates that messages from non-whitelisted user IDs are rejected, and messages from whitelisted IDs are processed."
+  "criteria": "Manifest versions in plugin.json, package.json, gemini-extension.json, and scripts/setup/package.json match 6.0.0; .version-bump.json targets are updated; invalid main field removed from package.json; antigravity-tools.md includes custom MCP tools."
 }

@@ -1,6 +1,6 @@
 {
   "name": "setup-wizard",
-  "version": "1.0.0",
+  "version": "6.0.0",
   "type": "module",
   "scripts": {
     "build": "tsc",

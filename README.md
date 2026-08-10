@@ -12,7 +12,7 @@ AeroDeck natively supports the **Google Antigravity 2.0** platform, featuring a 
    npm run setup
    ```
 
-## How it works
+## How It Works
 
 It starts from the moment you fire up your agent. As soon as it receives a goal or a task, it *doesn't* just jump into performing actions. Instead, it steps back and asks you what you're really trying to achieve.
 
@@ -22,10 +22,7 @@ After you've signed off on the design or target requirements, your agent puts to
 
 Next up, once you say "go", it launches a *subagent-driven-task-pipeline* process, executing each task through specialized worker and reviewer subagents (with multi-stage reviews for content creation or operational execution) without stopping. It can work autonomously to achieve your goals while ensuring every intermediate step is fully verified.
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your agent just has AeroDeck.
-
-
-
+Because AeroDeck skills trigger automatically based on context, your agent operates systematically out of the box.
 
 ## Installation
 
@@ -39,19 +36,19 @@ This is the primary target for this fork. Choose your platform below.
 
 * **Global plugin** (available in all projects):
 
-```bash
+  ```bash
   git clone https://github.com/eeftychiou/AeroDeck ~/.gemini/config/plugins/aerodeck
   ```
 
 * **Workspace plugin** (project-level only):
 
-```bash
+  ```bash
   git clone https://github.com/eeftychiou/AeroDeck .agents/plugins/aerodeck
   ```
 
 * **Update later:**
 
-```bash
+  ```bash
   cd ~/.gemini/config/plugins/aerodeck && git pull
   ```
 
@@ -59,20 +56,20 @@ This is the primary target for this fork. Choose your platform below.
 
 * **Global plugin** (available in all projects):
 
-```powershell
-  git clone https://github.com/eeftychiou/AeroDeck "$env:USERPROFILE\\.gemini\\config\\plugins\\aerodeck"
+  ```powershell
+  git clone https://github.com/eeftychiou/AeroDeck "$env:USERPROFILE\.gemini\config\plugins\aerodeck"
   ```
 
 * **Workspace plugin** (project-level only):
 
-```powershell
-  git clone https://github.com/eeftychiou/AeroDeck .agents\\plugins\\aerodeck
+  ```powershell
+  git clone https://github.com/eeftychiou/AeroDeck .agents\plugins\aerodeck
   ```
 
 * **Update later:**
 
-```powershell
-  cd "$env:USERPROFILE\\.gemini\\config\\plugins\\aerodeck"; git pull
+  ```powershell
+  cd "$env:USERPROFILE\.gemini\config\plugins\aerodeck"; git pull
   ```
 
 #### Windows (WSL)
@@ -97,26 +94,22 @@ If you run the **Windows Antigravity IDE** but your workspace is in **WSL**, the
   git clone https://github.com/eeftychiou/AeroDeck /path/to/your/wsl/project/.agents/plugins/aerodeck
   ```
 
+#### Activation Flow
 
+AeroDeck supports dual activation options:
 
-#### Activation
+1. **Automatic Context Loading (`GEMINI.md`):**
+   When opened in an AeroDeck-enabled workspace, `GEMINI.md` automatically injects system rules, tool mappings, and skill references into the agent's startup context. No manual intervention is needed—the agent automatically recognizes and triggers AeroDeck workflows based on user prompts.
 
-1. Run the interactive setup wizard from the project directory to configure your API keys, authorize Google Drive, and register the MCP servers:
-   ```bash
-   npm run setup
-   ```
-2. AeroDeck skills are available via the **`/using-aerodeck`** slash command in Antigravity 2.0 and Antigravity IDE. For the Antigravity CLI, the command is **`/aerodeck:using-aerodeck`**. Type the appropriate command at the start of a session to activate the skill system. *(Note: If you have Antigravity open during install, restart the application to ensure the plugin is scanned and loaded).* The agent will load the bootstrap and tool mapping, then brainstorming, TDD, subagent-driven-task-pipeline, and all other skills will trigger automatically for the rest of the session.
-
-
+2. **Slash Command Activation (`/using-aerodeck`):**
+   You can manually initialize or reset the skills system at any time by typing **`/using-aerodeck`** in Antigravity 2.0 / Antigravity IDE, or **`/aerodeck:using-aerodeck`** in the Antigravity CLI. This prompts the agent to load the bootstrap guide, scan available skills, and initialize tool mappings for the session. *(Note: Restart Antigravity after initial installation to ensure plugins are scanned).*
 
 #### Verify Installation
 
 1. Start a new Antigravity session
 2. Type `/using-aerodeck` (or `/aerodeck:using-aerodeck` if using the Antigravity CLI)
 3. Say "Let's make a react todo list"
-4. The brainstorming skill should trigger automatically
-
-
+4. The `brainstorming` skill should trigger automatically
 
 ## The Basic Workflow
 
@@ -134,47 +127,75 @@ If you run the **Windows Antigravity IDE** but your workspace is in **WSL**, the
 
 ### Skills Library
 
-**Testing**
+AeroDeck includes 22 specialized skills organized into 5 logical categories:
 
-* **criteria-driven-refinement** - RED-GREEN-REFACTOR cycle (includes testing anti-patterns reference)
+#### 1. Core Workflow & Pipeline Engine
+* **brainstorming** - Socratic requirement discovery, visual architectural diagrams, and structured design validation.
+* **using-isolated-workspaces** - Workspace isolation and baseline state verification.
+* **writing-plans** - Task decomposition with explicit targets, content, and verification steps.
+* **subagent-driven-task-pipeline** - Autonomous task execution with independent worker and reviewer subagents.
+* **executing-plans** - Batch execution of implementation plans with human review checkpoints.
+* **completing-a-task-pipeline** - Deliverable verification, branch integration/PR decisions, and workspace cleanup.
 
-**Debugging**
+#### 2. Refinement QA & Delivery
+* **criteria-driven-refinement** - RED-GREEN-REFACTOR execution cycle with mandatory failure verification before implementation.
+* **requesting-task-review** - Structured pre-delivery verification and severity-based issue reporting.
+* **receiving-task-review** - Technical rigor and logical verification of incoming review feedback.
+* **verification-before-delivery** - Empirical runtime and visual check execution before completing tasks.
 
-* **systematic-problem-solving** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
-* **verification-before-delivery** - Ensure it's actually fixed
+#### 3. Problem Solving & Debugging
+* **systematic-problem-solving** - 4-phase root-cause investigation (root-cause tracing, defense-in-depth, condition waiting).
+* **dispatching-parallel-tasks** - Concurrent execution of non-interfering subtasks across parallel subagents.
 
-**Collaboration**
+#### 4. Operations Research & Workflows
+* **systematic-research** - Multi-source fact verification, confidence scoring, and source matrices.
+* **document-drafting** - Audience-profiled professional communications and BLUF executive layouts.
+* **document-synthesis** - Multi-document cross-referencing across cloud storage and web sources.
+* **data-processing** - Programmatic tabular data calculations, validation, and sanitization.
+* **transcript-processing** - Log/meeting transcription, action item extraction, and structured summaries.
+* **email-management-workflow** - Automated mailbox searching and BLUF email draft generation using model routing and browser/MAPI tools.
+* **outlook-mail-research** - PowerShell MAPI querying for local Outlook desktop instances.
+* **web-navigation-workflow** - Playwright browser automation for web data extraction and interaction.
 
-* **brainstorming** - Socratic design refinement
-* **writing-plans** - Detailed implementation plans
-* **executing-plans** - Batch execution with checkpoints
-* **dispatching-parallel-tasks** - Concurrent subagent workflows
-* **requesting-task-review** - Pre-review checklist
-* **receiving-task-review** - Responding to feedback
-* **using-isolated-workspaces** - Parallel development branches
-* **completing-a-task-pipeline** - Merge/PR decision workflow
-* **subagent-driven-task-pipeline** - Fast iteration with two-stage review (spec compliance, then code quality)
+#### 5. Meta / Skill Development
+* **using-aerodeck** - Entry point and skill discovery rule engine.
+* **writing-skills** - Framework for creating, auditing, and testing custom AeroDeck skills.
 
-**General Assistant / Operations**
+### Generalized Real-World Use Cases
 
-* **systematic-research** - Fact-checking, source matrix verification, and confidence ratings
-* **document-drafting** - Profile-driven professional communication and BLUF layouts
-* **document-synthesis** - Cross-referencing files from Google Drive and web findings
-* **data-processing** - Programmatic tabular data (CSV/TSV/Excel) calculation/sanitization
-* **transcript-processing** - Meeting and log summarization, audio/video transcription, and action item extraction
+AeroDeck provides 6 production-proven, anonymized blueprints demonstrating end-to-end automation across high-stakes domains:
 
-**Meta**
+* **Use Case 1: High-Stakes Public Sector Application Audit & Statutory Scoring Alignment**
+  *Capabilities:* Dual-path credential verification, statutory law scoring criteria mapping, script-verified character constraint checking, field guide generation.
+  *Workflow:* Integrates `systematic-research`, `criteria-driven-refinement`, and `subagent-driven-task-pipeline` to verify applicant qualifications against legislative criteria without hallucination.
 
-* **writing-skills** - Create new skills following best practices (includes testing methodology)
-* **using-aerodeck** - Introduction to the skills system
+* **Use Case 2: Ministerial & Diplomatic Executive Briefing Generation**
+  *Capabilities:* Bottom-Line-Up-Front (BLUF) summaries, policy position papers, multi-source document synthesis.
+  *Workflow:* Combines `document-synthesis` and `document-drafting` to ingest complex policy reports, cross-reference strategic objectives, and draft executive summaries tailored for decision-makers.
+
+* **Use Case 3: Local Mailbox Research & Executive Email Automation**
+  *Capabilities:* MAPI PowerShell searching, BLUF email drafting with audience/tone profiling.
+  *Workflow:* Utilizes `outlook-mail-research` to query local desktop Outlook stores via `scripts/outlook-search.ps1`, then leverages `email-management-workflow` and `model-router` to draft contextually aware, professionally styled responses.
+
+* **Use Case 4: Cloud Storage & AI Studio Conversation Indexing**
+  *Capabilities:* Google Drive OAuth2 search/read, conversation harvesting into markdown knowledge bases.
+  *Workflow:* Uses `mcp-servers/google-drive` to search and fetch documents across corporate Drive accounts, parsing raw transcript data via `transcript-processing` to compile indexed knowledge repositories.
+
+* **Use Case 5: Subagent-Driven Multi-Stage Quality Review Pipelines**
+  *Capabilities:* Isolated worker/reviewer subagent delegation for content accuracy, statutory compliance, and final approval.
+  *Workflow:* Employs `subagent-driven-task-pipeline` where worker subagents execute independent tasks while reviewer subagents conduct rigorous two-stage reviews (specification compliance followed by quality/accuracy verification).
+
+* **Use Case 6: Remote Command Control via Telegram Bridge**
+  *Capabilities:* Telegram bot daemon, remote terminal command approval buttons, mobile document upload.
+  *Workflow:* Deploys `telegram-bridge` daemon to monitor agent operations remotely. Inline keyboard buttons allow human operators to approve or deny sensitive shell commands from a mobile device while ingesting uploaded files securely into workspace subdirectories.
 
 ### MCP Servers
 
 AeroDeck natively includes robust MCP servers to extend your agent's capabilities out of the box:
 
-* **Model Router** - Dynamically manages and routes requests to external AI models by safely injecting your API keys from a secure `.env` file without polluting the standard input/output channels.
-* **Browser Automation** - Provides comprehensive Playwright-based browser automation, allowing your agent to navigate websites, click elements, fill forms, and interact with web pages either headlessly or visibly.
-* **Google Drive** - Provides robust cloud integration to search filenames and contents, read Google Docs as plain text, and download binary files locally. See the [Google Drive Setup Guide](file:///c:/Users/User/Antigravity/Gemini%20Assistant/mcp-servers/google-drive/README.md) for configuration instructions.
+* **Model Router** - Dynamically manages and routes requests to external AI models by safely injecting your API keys from a secure `.env` file without polluting the standard input/output channels. See `mcp-servers/model-router/README.md` for details.
+* **Browser Automation** - Provides comprehensive Playwright-based browser automation, allowing your agent to navigate websites, click elements, fill forms, and interact with web pages either headlessly or visibly. See `mcp-servers/browser-automation/README.md` for details.
+* **Google Drive** - Provides robust cloud integration to search filenames and contents, read Google Docs as plain text, and download binary files locally. See the [Google Drive Setup Guide](mcp-servers/google-drive/README.md) for configuration instructions.
 
 ### Telegram Bridge
 
@@ -185,7 +206,7 @@ AeroDeck includes a secure, Python-based Telegram bot bridge daemon that allows 
 * **Secure File Ingestion:** Safely uploads and ingests documents directly into your agent's workspace with directory traversal sanitization.
 * **Session Management:** Standard `/start`, `/reset`, and `/aerodeck` commands to manage local execution environments.
 
-See the [Telegram Bridge Setup Guide](file:///c:/Users/User/Antigravity/Gemini Assistant/telegram-bridge/docs/setup.md) to configure and run the bridge daemon.
+See the [Telegram Bridge Setup Guide](telegram-bridge/docs/setup.md) to configure and run the bridge daemon.
 
 ## Philosophy
 
@@ -193,7 +214,6 @@ See the [Telegram Bridge Setup Guide](file:///c:/Users/User/Antigravity/Gemini A
 * **Systematic over ad-hoc** - Process over guessing
 * **Complexity reduction** - Simplicity as primary goal
 * **Evidence over claims** - Verify before declaring success
-
 
 ## Contributing
 
@@ -218,4 +238,3 @@ MIT License - see LICENSE file for details
 ## Community
 
 * **Issues**: https://github.com/eeftychiou/AeroDeck/issues
-
