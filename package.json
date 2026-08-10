@@ -3,6 +3,9 @@
   "version": "6.0.0",
   "type": "module",
   "scripts": {
-    "setup": "npm --prefix scripts/setup install && npm --prefix scripts/setup run start"
+    "setup": "npm --prefix scripts/setup install && npm --prefix scripts/setup run start",
+    "test": "node scripts/test-runner.js --unit",
+    "test:unit": "node scripts/test-runner.js --unit",
+    "test:live": "node scripts/test-runner.js --live"
   }
 }
