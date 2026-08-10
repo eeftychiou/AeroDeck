@@ -34,14 +34,21 @@ const minimax = createOpenAI({
   apiKey: process.env.MINIMAX_API_KEY,
 });
 
-export async function routeTask(prompt: string, modelTier: string) {
+export async function routeTask(prompt: string, modelTier: string = "smart", modelName?: string) {
+  const target = (modelName || modelTier || "").trim();
+  const lowerTarget = target.toLowerCase();
   let model;
-  if (modelTier === "fast" || modelTier === "minimax") {
-    model = minimax("MiniMax-Text-01");
-  } else if (modelTier === "deepseek" || modelTier === "smart") {
-    model = deepseek("deepseek-chat");
+
+  if (lowerTarget.includes("minimax") || lowerTarget.startsWith("abab")) {
+    const selectedModel = modelName || (lowerTarget === "minimax" || lowerTarget === "fast" ? "MiniMax-Text-01" : target);
+    model = minimax(selectedModel);
+  } else if (lowerTarget.includes("deepseek")) {
+    const selectedModel = modelName || (lowerTarget === "deepseek" || lowerTarget === "smart" ? "deepseek-chat" : target);
+    model = deepseek(selectedModel);
+  } else if (lowerTarget === "fast") {
+    model = minimax(modelName || "MiniMax-Text-01");
   } else {
-    model = deepseek("deepseek-chat"); // default fallback
+    model = deepseek(modelName || target || "deepseek-chat");
   }
 
   try {
@@ -66,14 +73,15 @@ export function setupServer() {
       tools: [
         {
           name: "route_task",
-          description: "Route a task to a specified model tier",
+          description: "Route a task to a specified model tier or exact model name (e.g. deepseek-chat, deepseek-reasoner, MiniMax-Text-01, minimax-M3)",
           inputSchema: {
             type: "object",
             properties: {
-              prompt: { type: "string" },
-              modelTier: { type: "string" }
+              prompt: { type: "string", description: "Prompt or instruction to send to the model" },
+              modelTier: { type: "string", description: "Model tier: 'fast', 'smart', 'deepseek', 'minimax'" },
+              modelName: { type: "string", description: "Exact model ID, e.g., 'deepseek-chat', 'deepseek-reasoner', 'MiniMax-Text-01', 'minimax-M3'" }
             },
-            required: ["prompt", "modelTier"]
+            required: ["prompt"]
           }
         }
       ]
@@ -82,8 +90,8 @@ export function setupServer() {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (request.params.name === "route_task") {
-      const { prompt, modelTier } = request.params.arguments as any;
-      const response = await routeTask(prompt, modelTier);
+      const { prompt, modelTier, modelName } = request.params.arguments as any;
+      const response = await routeTask(prompt, modelTier, modelName);
       return {
         content: [{ type: "text", text: response }]
       };
