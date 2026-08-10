@@ -9,8 +9,9 @@ const __dirname = path.dirname(__filename);
 const TOKEN_PATH = path.join(__dirname, "../token.json");
 
 export async function getOAuth2Client() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_DRIVE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_DRIVE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
   const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/oauth2callback";
 
   if (!clientId || !clientSecret) {
@@ -18,6 +19,11 @@ export async function getOAuth2Client() {
   }
 
   const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+
+  if (refreshToken) {
+    oAuth2Client.setCredentials({ refresh_token: refreshToken });
+    return oAuth2Client;
+  }
 
   if (fs.existsSync(TOKEN_PATH)) {
     const token = JSON.parse(fs.readFileSync(TOKEN_PATH, "utf-8"));

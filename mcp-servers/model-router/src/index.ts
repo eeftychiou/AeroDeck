@@ -80,15 +80,21 @@ export async function routeTask(prompt: string, modelTier: string = "smart", mod
   }
 
   try {
-    const { text } = await generateText({
+    const generateOptions: any = {
       model,
       prompt,
-      providerOptions: {
+    };
+
+    const modelId = String((model as any)?.modelId || "").toLowerCase();
+    if (modelId.includes("reasoner") || modelId.includes("o1") || modelId.includes("o3") || routerConfig?.tiers?.[targetTier]?.reasoningEffort === "high") {
+      generateOptions.providerOptions = {
         openai: {
           reasoningEffort: "high",
         },
-      },
-    });
+      };
+    }
+
+    const { text } = await generateText(generateOptions);
     return text;
   } catch (error: any) {
     return `Error routing task: ${error.message}`;
