@@ -175,9 +175,9 @@ export async function routeTask(
       };
 
       const effort = (cand.reasoningEffort || "").toLowerCase();
-      if (cand.provider === "openai" && (effort === "high" || effort === "medium" || effort === "low")) {
+      if (effort === "high" || effort === "medium" || effort === "low" || effort === "max") {
         generateOptions.providerOptions = {
-          openai: {
+          [cand.provider]: {
             reasoningEffort: effort,
           },
         };
