@@ -33,7 +33,9 @@ function loadSessions(): Record<string, SessionMessage[]> {
 function saveSessions(sessions: Record<string, SessionMessage[]>) {
   inMemorySessions = sessions;
   try {
-    fs.writeFileSync(sessionsFilePath, JSON.stringify(sessions, null, 2));
+    const tempPath = `${sessionsFilePath}.${Date.now()}.${Math.random().toString(36).substring(2, 8)}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(sessions, null, 2));
+    fs.renameSync(tempPath, sessionsFilePath);
   } catch (e) {
     console.error("Failed to write sessions.json:", e);
   }

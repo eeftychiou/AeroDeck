@@ -1,5 +1,5 @@
 {
   "name": "aerodeck",
-  "description": "A flight deck and multi-stage review pipeline for composable agent skills",
-  "version": "6.0.0"
+  "description": "General agentic framework and multi-stage review pipeline for Antigravity 2.0 / IDE / CLI",
+  "version": "7.0.0"
 }

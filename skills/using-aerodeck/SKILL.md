@@ -107,6 +107,15 @@ When multiple skills could apply, use this order:
 
 The skill itself tells you which.
 
+### Adaptive Execution Gate
+
+Before launching full multi-subagent pipelines, evaluate task complexity:
+
+* **Complex / Multi-Subsystem Tasks** (e.g. multi-step automation, cross-component framework changes, broad research papers):
+  - Follow full pipeline: `brainstorming` $\rightarrow$ `writing-plans` $\rightarrow$ `subagent-driven-task-pipeline`.
+* **Lightweight / Single-Step Tasks** (e.g. minor text/formatting edits, single file fixes, isolated calculations):
+  - Use **Fast-Track Execution**: Execute directly using `criteria-driven-refinement` (RED-GREEN-REFACTOR) without 9-step brainstorming or 4-subagent review loops.
+
 ### User Instructions
 
 Instructions say WHAT, not HOW. "Draft X" or "Route Y" does not mean skip workflows.

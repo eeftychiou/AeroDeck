@@ -8,9 +8,15 @@
  * not shipped to end users).
  */
 
+let WebSocket;
+try {
+  WebSocket = require('ws');
+} catch (e) {
+  console.log('[SKIP] brainstorm-server lifecycle test requires optional test package "ws"');
+  process.exit(0);
+}
 const { spawn } = require('child_process');
 const http = require('http');
-const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');

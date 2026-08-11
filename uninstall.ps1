@@ -18,6 +18,7 @@ if (Test-Path $mcpConfigFile) {
         if ($null -ne $mcpConfig.mcpServers) {
             $mcpConfig.mcpServers.PSObject.Properties.Remove("browser-automation")
             $mcpConfig.mcpServers.PSObject.Properties.Remove("model-router")
+            $mcpConfig.mcpServers.PSObject.Properties.Remove("google-drive")
             
             $mcpConfig | ConvertTo-Json -Depth 10 | Set-Content $mcpConfigFile
             Write-Host "Unregistered MCP servers from $mcpConfigFile"

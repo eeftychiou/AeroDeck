@@ -1,6 +1,6 @@
 {
   "name": "aerodeck",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "type": "module",
   "scripts": {
     "postinstall": "npm run build:servers",

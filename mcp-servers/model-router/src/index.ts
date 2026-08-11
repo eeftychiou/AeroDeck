@@ -79,34 +79,61 @@ export async function routeTask(
 ) {
   const targetTier = (modelTier || "default").trim().toLowerCase();
   const explicitModel = (modelName || "").trim();
-  let model: any = null;
   let targetReasoningEffort = reasoningEffort || "";
 
   if (sessionId && newSession) {
     clearSession(sessionId);
   }
 
+  interface Candidate {
+    provider: string;
+    model: string;
+    baseURL?: string;
+    reasoningEffort?: string;
+  }
+
+  const candidates: Candidate[] = [];
+
   // 1. First check if modelTier matches a configured tier profile (e.g. fast, smart, reasoning, default)
   if (routerConfig && routerConfig.tiers && routerConfig.tiers[targetTier]) {
     const tierConfig = routerConfig.tiers[targetTier];
-    const targetModel = explicitModel || tierConfig.model;
-    const providerName = tierConfig.provider || "openai";
-    targetReasoningEffort = targetReasoningEffort || tierConfig.reasoningEffort || "medium";
-    model = getProviderModel(providerName, targetModel, tierConfig.baseURL);
+    candidates.push({
+      provider: tierConfig.provider || "openai",
+      model: explicitModel || tierConfig.model,
+      baseURL: tierConfig.baseURL,
+      reasoningEffort: targetReasoningEffort || tierConfig.reasoningEffort || "medium",
+    });
+    if (tierConfig.fallbacks && Array.isArray(tierConfig.fallbacks)) {
+      for (const fb of tierConfig.fallbacks) {
+        candidates.push({
+          provider: fb.provider,
+          model: fb.model,
+          baseURL: fb.baseURL,
+          reasoningEffort: fb.reasoningEffort || targetReasoningEffort || "medium",
+        });
+      }
+    }
   }
   // 2. Next check if modelTier matches a known provider slug directly (e.g. minimax, deepseek, openrouter)
   else if (routerConfig && routerConfig.providers && routerConfig.providers[targetTier]) {
     const provConfig = routerConfig.providers[targetTier];
-    const targetModel = explicitModel || provConfig.defaultModel || "default";
-    model = getProviderModel(targetTier, targetModel, provConfig.baseURL);
+    candidates.push({
+      provider: targetTier,
+      model: explicitModel || provConfig.defaultModel || "default",
+      baseURL: provConfig.baseURL,
+      reasoningEffort: targetReasoningEffort || "medium",
+    });
   }
-
   // 3. Fallback: if explicit model ID passed, or smart tier fallback
-  if (!model) {
-    const target = (explicitModel || modelTier || "").trim();
-    const defaultModel = explicitModel || target || routerConfig?.default_model || "deepseek-v4-flash";
+  else {
+    const defaultModel = explicitModel || targetTier || routerConfig?.default_model || "deepseek-v4-flash";
     const smartTier = routerConfig?.tiers?.smart;
-    model = getProviderModel(smartTier?.provider || "deepseek", defaultModel, smartTier?.baseURL);
+    candidates.push({
+      provider: smartTier?.provider || "deepseek",
+      model: defaultModel,
+      baseURL: smartTier?.baseURL,
+      reasoningEffort: targetReasoningEffort || "medium",
+    });
   }
 
   // Retrieve session context if session_id provided
@@ -114,36 +141,43 @@ export async function routeTask(
   if (sessionId) {
     const history = getSessionHistory(sessionId);
     if (history.length > 0) {
-      const historyStr = history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
+      const historyStr = history.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
       fullPrompt = `[Previous Conversation History]\n${historyStr}\n\nUSER: ${prompt}`;
     }
   }
 
-  try {
-    const generateOptions: any = {
-      model,
-      prompt: fullPrompt,
-    };
-
-    const effort = (targetReasoningEffort || "").toLowerCase();
-    if (effort === "high" || effort === "medium" || effort === "low") {
-      generateOptions.providerOptions = {
-        openai: {
-          reasoningEffort: effort,
-        },
+  let lastError: any = null;
+  for (const cand of candidates) {
+    try {
+      const model = getProviderModel(cand.provider, cand.model, cand.baseURL);
+      const generateOptions: any = {
+        model,
+        prompt: fullPrompt,
       };
+
+      const effort = (cand.reasoningEffort || "").toLowerCase();
+      if (effort === "high" || effort === "medium" || effort === "low") {
+        generateOptions.providerOptions = {
+          openai: {
+            reasoningEffort: effort,
+          },
+        };
+      }
+
+      const { text } = await generateText(generateOptions);
+
+      if (sessionId && text) {
+        appendSessionTurn(sessionId, prompt, text);
+      }
+
+      return text;
+    } catch (error: any) {
+      console.error(`Provider '${cand.provider}' model '${cand.model}' failed: ${error.message}. Trying fallback...`);
+      lastError = error;
     }
-
-    const { text } = await generateText(generateOptions);
-
-    if (sessionId && text) {
-      appendSessionTurn(sessionId, prompt, text);
-    }
-
-    return text;
-  } catch (error: any) {
-    return `Error routing task: ${error.message}`;
   }
+
+  return `Error routing task: ${lastError?.message || "All fallback candidates failed"}`;
 }
 
 export function setupServer() {

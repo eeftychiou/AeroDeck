@@ -185,15 +185,17 @@ AeroDeck operates through structured, context-aware workflow skills:
 
 ## 7. Skills Library
 
-AeroDeck includes 22 specialized skills across 5 categories:
+AeroDeck includes 24 specialized skills across 5 categories:
 
 ### 1. Core Workflow Engine
-* **brainstorming** - Requirement discovery & design validation before action.
+* **brainstorming** - Requirement discovery & design validation before action (with Adaptive Fast-Track).
 * **using-isolated-workspaces** - Workspace isolation and baseline verification.
 * **writing-plans** - Task decomposition with explicit targets and verification steps.
 * **subagent-driven-task-pipeline** - Autonomous execution with worker & reviewer subagents.
 * **executing-plans** - Batch execution with human review checkpoints.
 * **completing-a-task-pipeline** - Deliverable verification and cleanup.
+* **background-task-scheduling** - Native Antigravity 2.0 schedule & cron monitoring (`schedule`).
+* **resilient-model-fallback** - Fallback procedures for offline MCP servers and model router failures.
 
 ### 2. QA & Delivery Refinement
 * **criteria-driven-refinement** - RED-GREEN-REFACTOR execution cycle.
@@ -216,7 +218,7 @@ AeroDeck includes 22 specialized skills across 5 categories:
 * **web-navigation-workflow** - Playwright browser automation.
 
 ### 5. Skill Meta
-* **using-aerodeck** - Framework entry point & skill rules engine.
+* **using-aerodeck** - Framework entry point, skill rules engine & complexity gate.
 * **writing-skills** - Guide for creating and testing custom skills.
 
 ---

@@ -17,6 +17,9 @@ if ($resolvedSourceFile -ne $resolvedTargetFile) {
     }
     Copy-Item -Path ".\plugin.json" -Destination $pluginDir -Force
     Copy-Item -Recurse -Force -Path ".\skills" -Destination $pluginDir
+    if (Test-Path ".\mcp-servers") {
+        Copy-Item -Recurse -Force -Path ".\mcp-servers" -Destination $pluginDir
+    }
     if (Test-Path ".\agents") {
         Copy-Item -Recurse -Force -Path ".\agents" -Destination $pluginDir -ErrorAction SilentlyContinue
     }
@@ -25,12 +28,12 @@ if ($resolvedSourceFile -ne $resolvedTargetFile) {
 }
 
 # 2. Build MCP servers & install dependencies
-$cwd = (Get-Location).Path
+$baseDir = $resolvedTargetDir
 
 Write-Host "Installing dependencies & building MCP servers..."
 $servers = @("browser-automation", "model-router", "google-drive")
 foreach ($server in $servers) {
-    $serverPath = Join-Path $cwd "mcp-servers\$server"
+    $serverPath = Join-Path $baseDir "mcp-servers\$server"
     if (Test-Path $serverPath) {
         Write-Host "  [+] Installing & building mcp-servers/$server..."
         npm --prefix $serverPath install --no-audit --no-fund
@@ -39,9 +42,9 @@ foreach ($server in $servers) {
 }
 
 # 3. Register MCP servers
-$browserServerPath = Join-Path $cwd "mcp-servers\browser-automation\dist\src\index.js"
-$routerServerPath = Join-Path $cwd "mcp-servers\model-router\dist\index.js"
-$driveServerPath = Join-Path $cwd "mcp-servers\google-drive\dist\index.js"
+$browserServerPath = Join-Path $baseDir "mcp-servers\browser-automation\dist\src\index.js"
+$routerServerPath = Join-Path $baseDir "mcp-servers\model-router\dist\index.js"
+$driveServerPath = Join-Path $baseDir "mcp-servers\google-drive\dist\index.js"
 
 $browserServerPath = $browserServerPath -replace '\\', '/'
 $routerServerPath = $routerServerPath -replace '\\', '/'
