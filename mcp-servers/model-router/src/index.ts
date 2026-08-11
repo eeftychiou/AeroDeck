@@ -2,10 +2,12 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const localEnvPath = path.resolve(__dirname, "../.env");
 const rootEnvPath = path.resolve(__dirname, "../../.env");
+
 for (const envPath of [localEnvPath, rootEnvPath]) {
   if (fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath));
@@ -16,6 +18,7 @@ for (const envPath of [localEnvPath, rootEnvPath]) {
     }
   }
 }
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -34,32 +37,48 @@ if (fs.existsSync(configPath)) {
   }
 }
 
-const deepseekBaseURL = routerConfig?.providers?.deepseek?.baseURL || "https://api.deepseek.com";
-const minimaxBaseURL = routerConfig?.providers?.minimax?.baseURL || "https://api.minimaxi.chat/v1";
+// Map of custom OpenAI-compatible provider instances
+const providerInstances: Record<string, ReturnType<typeof createOpenAI>> = {};
 
-const deepseek = createOpenAI({
-  baseURL: deepseekBaseURL,
-  apiKey: process.env.DEEPSEEK_API_KEY,
-});
+function getProviderModel(providerName: string, modelId: string) {
+  const normProvider = (providerName || "").toLowerCase();
+  
+  if (normProvider === "anthropic") {
+    return anthropic(modelId);
+  }
+  if (normProvider === "google") {
+    return google(modelId);
+  }
+  if (normProvider === "openai" && !routerConfig?.providers?.openai?.baseURL) {
+    return openai(modelId);
+  }
 
-const minimax = createOpenAI({
-  baseURL: minimaxBaseURL,
-  apiKey: process.env.MINIMAX_API_KEY,
-});
+  // Look up provider config in config.json
+  const provConfig = routerConfig?.providers?.[normProvider] || {};
+  const baseURL = provConfig.baseURL || "https://api.openai.com/v1";
+  const apiKeyEnv = provConfig.apiKeyEnv || `${normProvider.toUpperCase()}_API_KEY`;
+  const apiKey = process.env[apiKeyEnv] || process.env.OPENAI_API_KEY || "";
+
+  if (!providerInstances[normProvider]) {
+    providerInstances[normProvider] = createOpenAI({
+      baseURL,
+      apiKey,
+    });
+  }
+
+  return providerInstances[normProvider](modelId);
+}
 
 export async function routeTask(prompt: string, modelTier: string = "smart", modelName?: string) {
   const targetTier = (modelTier || "").trim().toLowerCase();
   const explicitModel = (modelName || "").trim();
-  let model;
+  let model: any = null;
 
   if (routerConfig && routerConfig.tiers && routerConfig.tiers[targetTier]) {
     const tierConfig = routerConfig.tiers[targetTier];
     const targetModel = explicitModel || tierConfig.model;
-    if (tierConfig.provider === "minimax") {
-      model = minimax(targetModel);
-    } else if (tierConfig.provider === "deepseek") {
-      model = deepseek(targetModel);
-    }
+    const providerName = tierConfig.provider || "openai";
+    model = getProviderModel(providerName, targetModel);
   }
 
   if (!model) {
@@ -68,14 +87,23 @@ export async function routeTask(prompt: string, modelTier: string = "smart", mod
 
     if (lowerTarget.includes("minimax") || lowerTarget.startsWith("abab")) {
       const selectedModel = explicitModel || (lowerTarget === "minimax" || lowerTarget === "fast" ? (routerConfig?.tiers?.fast?.model || "minimax-M3") : target);
-      model = minimax(selectedModel);
+      model = getProviderModel("minimax", selectedModel);
     } else if (lowerTarget.includes("deepseek")) {
       const selectedModel = explicitModel || (lowerTarget === "deepseek" || lowerTarget === "smart" ? (routerConfig?.tiers?.smart?.model || "deepseek-v4-flash") : target);
-      model = deepseek(selectedModel);
+      model = getProviderModel("deepseek", selectedModel);
+    } else if (lowerTarget.includes("claude") || lowerTarget.includes("anthropic")) {
+      const selectedModel = explicitModel || "claude-3-5-sonnet-20241022";
+      model = getProviderModel("anthropic", selectedModel);
+    } else if (lowerTarget.includes("gpt") || lowerTarget.includes("openai")) {
+      const selectedModel = explicitModel || "gpt-4o-mini";
+      model = getProviderModel("openai", selectedModel);
     } else if (lowerTarget === "fast") {
-      model = minimax(explicitModel || routerConfig?.tiers?.fast?.model || "minimax-M3");
+      const fastTier = routerConfig?.tiers?.fast;
+      model = getProviderModel(fastTier?.provider || "minimax", explicitModel || fastTier?.model || "minimax-M3");
     } else {
-      model = deepseek(explicitModel || target || routerConfig?.default_model || "deepseek-v4-flash");
+      const defaultModel = explicitModel || target || routerConfig?.default_model || "deepseek-v4-flash";
+      const smartTier = routerConfig?.tiers?.smart;
+      model = getProviderModel(smartTier?.provider || "deepseek", defaultModel);
     }
   }
 
@@ -85,7 +113,7 @@ export async function routeTask(prompt: string, modelTier: string = "smart", mod
       prompt,
     };
 
-    const modelId = String((model as any)?.modelId || "").toLowerCase();
+    const modelId = String(model?.modelId || "").toLowerCase();
     if (modelId.includes("reasoner") || modelId.includes("o1") || modelId.includes("o3") || routerConfig?.tiers?.[targetTier]?.reasoningEffort === "high") {
       generateOptions.providerOptions = {
         openai: {
@@ -112,13 +140,13 @@ export function setupServer() {
       tools: [
         {
           name: "route_task",
-          description: "Route a task to a specified model tier or exact model name (e.g. deepseek-v4-flash, minimax-M3)",
+          description: "Route a task to a specified model tier or exact model name (e.g. deepseek-v4-flash, minimax-M3, gpt-4o, claude-3-5-sonnet)",
           inputSchema: {
             type: "object",
             properties: {
               prompt: { type: "string", description: "Prompt or instruction to send to the model" },
-              modelTier: { type: "string", description: "Model tier: 'fast', 'smart', 'deepseek', 'minimax'" },
-              modelName: { type: "string", description: "Exact model ID, e.g., 'deepseek-v4-flash', 'minimax-M3'" }
+              modelTier: { type: "string", description: "Model tier: 'fast', 'smart', 'reasoning', or provider name" },
+              modelName: { type: "string", description: "Exact model ID, e.g., 'deepseek-v4-flash', 'minimax-M3', 'gpt-4o-mini'" }
             },
             required: ["prompt"]
           }
@@ -140,7 +168,6 @@ export function setupServer() {
 
   return server;
 }
-
 
 async function run() {
   const server = setupServer();

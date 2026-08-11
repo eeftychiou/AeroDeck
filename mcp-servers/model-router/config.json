@@ -18,6 +18,16 @@
     }
   },
   "providers": {
+    "openai": {
+      "baseURL": "https://api.openai.com/v1",
+      "apiKeyEnv": "OPENAI_API_KEY",
+      "defaultModel": "gpt-4o-mini"
+    },
+    "anthropic": {
+      "baseURL": "https://api.anthropic.com/v1",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "defaultModel": "claude-3-5-sonnet-20241022"
+    },
     "deepseek": {
       "baseURL": "https://api.deepseek.com",
       "apiKeyEnv": "DEEPSEEK_API_KEY",
@@ -27,6 +37,31 @@
       "baseURL": "https://api.minimaxi.chat/v1",
       "apiKeyEnv": "MINIMAX_API_KEY",
       "defaultModel": "minimax-M3"
+    },
+    "kimi": {
+      "baseURL": "https://api.moonshot.cn/v1",
+      "apiKeyEnv": "KIMI_API_KEY",
+      "defaultModel": "moonshot-v1-8k"
+    },
+    "openrouter": {
+      "baseURL": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "defaultModel": "google/gemini-2.5-pro"
+    },
+    "groq": {
+      "baseURL": "https://api.groq.com/openai/v1",
+      "apiKeyEnv": "GROQ_API_KEY",
+      "defaultModel": "llama-3.3-70b-versatile"
+    },
+    "together": {
+      "baseURL": "https://api.together.xyz/v1",
+      "apiKeyEnv": "TOGETHER_API_KEY",
+      "defaultModel": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    },
+    "ollama": {
+      "baseURL": "http://localhost:11434/v1",
+      "apiKeyEnv": "OLLAMA_API_KEY",
+      "defaultModel": "llama3.2"
     }
   }
 }

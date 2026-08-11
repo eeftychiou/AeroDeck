@@ -1,12 +1,9 @@
-# Task Progress - Outlook Mailbox Search & Research Integration
+# AeroDeck Onboarding & Model Setup Task Checklist
 
-- [x] **Task 1: Create PowerShell Outlook Search Script (`scripts/outlook-search.ps1`)**
-  - Targets: `scripts/outlook-search.ps1`
-  - Verification: `powershell -ExecutionPolicy Bypass -File .\scripts\outlook-search.ps1 -SentOnly -MaxResults 1`
-
-- [x] **Task 2: Create AeroDeck Workflow Skill (`skills/outlook-mail-research/SKILL.md`)**
-  - Targets: `skills/outlook-mail-research/SKILL.md`
-  - Verification: File existence and frontmatter check
-
-- [x] **Task 3: Integration & End-to-End Verification**
-  - Verification: Run end-to-end command verification and commit to main
+- [x] Task 1: Hermes Model Catalog Fetcher & Offline Snapshot (`scripts/setup/src/catalog.ts`, `model-catalog.json`)
+- [x] Task 2: Multi-Provider Model Router Engine Upgrade (`mcp-servers/model-router/src/index.ts`, `config.json`)
+- [x] Task 3: Interactive Model Setup Wizard (`scripts/setup/src/setup-models.ts`, `npm run setup:models`)
+- [x] Task 4: Automated Google Workspace & Drive Setup (`scripts/setup/src/setup-google.ts`, `npm run setup:google`)
+- [x] Task 5: Refine Main Setup Wizard & Package Scripts (`scripts/setup/src/index.ts`, `package.json`)
+- [x] Task 6: Overhaul README.md & Google Drive Documentation (`README.md`, `mcp-servers/google-drive/README.md`)
+- [x] Task 7: Comprehensive Verification & Diagnostics (`npm test`, diagnostics)
