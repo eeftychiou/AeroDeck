@@ -1,3 +1,8 @@
+// Protect stdio stream from stdout pollution
+console.log = (...args: any[]) => console.error("[LOG]", ...args);
+console.info = (...args: any[]) => console.error("[INFO]", ...args);
+console.warn = (...args: any[]) => console.error("[WARN]", ...args);
+
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";

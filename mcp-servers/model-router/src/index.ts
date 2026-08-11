@@ -1,3 +1,8 @@
+import { setupStdioProtection, logMessage } from "./logger.js";
+
+// Immediately protect stdio stream from stdout pollution
+setupStdioProtection();
+
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -77,12 +82,21 @@ export async function routeTask(
   newSession?: boolean,
   reasoningEffort?: string
 ) {
+  const startTime = Date.now();
   const targetTier = (modelTier || "default").trim().toLowerCase();
   const explicitModel = (modelName || "").trim();
   let targetReasoningEffort = reasoningEffort || "";
 
+  logMessage("INFO", `routeTask request received`, {
+    modelTier: targetTier,
+    explicitModel: explicitModel || null,
+    sessionId: sessionId || null,
+    promptLength: prompt.length,
+  });
+
   if (sessionId && newSession) {
     clearSession(sessionId);
+    logMessage("INFO", `Cleared session '${sessionId}' as requested by newSession flag`);
   }
 
   interface Candidate {
@@ -136,6 +150,8 @@ export async function routeTask(
     });
   }
 
+  logMessage("DEBUG", `Resolved ${candidates.length} candidate model provider(s) for task`, candidates);
+
   // Retrieve session context if session_id provided
   let fullPrompt = prompt;
   if (sessionId) {
@@ -143,12 +159,14 @@ export async function routeTask(
     if (history.length > 0) {
       const historyStr = history.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
       fullPrompt = `[Previous Conversation History]\n${historyStr}\n\nUSER: ${prompt}`;
+      logMessage("DEBUG", `Appended ${history.length} conversation turns from session '${sessionId}'`);
     }
   }
 
   let lastError: any = null;
   for (const cand of candidates) {
     try {
+      logMessage("INFO", `Attempting model generation via provider '${cand.provider}', model '${cand.model}'`);
       const model = getProviderModel(cand.provider, cand.model, cand.baseURL);
       const generateOptions: any = {
         model,
@@ -170,14 +188,23 @@ export async function routeTask(
         appendSessionTurn(sessionId, prompt, text);
       }
 
+      const durationMs = Date.now() - startTime;
+      logMessage("INFO", `Successfully routed task via '${cand.provider}' model '${cand.model}' in ${durationMs}ms`, {
+        outputLength: text.length,
+      });
+
       return text;
     } catch (error: any) {
-      console.error(`Provider '${cand.provider}' model '${cand.model}' failed: ${error.message}. Trying fallback...`);
+      logMessage("WARN", `Provider '${cand.provider}' model '${cand.model}' generation failed: ${error.message}. Retrying fallback...`, {
+        errorStack: error.stack,
+      });
       lastError = error;
     }
   }
 
-  return `Error routing task: ${lastError?.message || "All fallback candidates failed"}`;
+  const errMessage = `Error routing task: ${lastError?.message || "All fallback candidates failed"}`;
+  logMessage("ERROR", errMessage);
+  return errMessage;
 }
 
 export function setupServer() {

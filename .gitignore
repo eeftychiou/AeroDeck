@@ -16,6 +16,7 @@ __pycache__/
 *.pyc
 
 # Local Environment & API Keys (Strictly Excluded)
+*.log
 .env
 .env.*
 !.env.example

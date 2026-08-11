@@ -1,3 +1,8 @@
+// Protect stdio stream from stdout pollution
+console.log = (...args: any[]) => console.error("[LOG]", ...args);
+console.info = (...args: any[]) => console.error("[INFO]", ...args);
+console.warn = (...args: any[]) => console.error("[WARN]", ...args);
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { chromium, Browser, Page } from "playwright";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
