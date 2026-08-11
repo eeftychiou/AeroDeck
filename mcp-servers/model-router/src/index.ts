@@ -66,6 +66,7 @@ function getProviderModel(providerName: string, modelId: string, customBaseURL?:
   const instanceKey = `${normProvider}_${baseURL}`;
   if (!providerInstances[instanceKey]) {
     providerInstances[instanceKey] = createOpenAI({
+      name: normProvider,
       baseURL,
       apiKey,
     });
@@ -174,7 +175,7 @@ export async function routeTask(
       };
 
       const effort = (cand.reasoningEffort || "").toLowerCase();
-      if (effort === "high" || effort === "medium" || effort === "low") {
+      if (cand.provider === "openai" && (effort === "high" || effort === "medium" || effort === "low")) {
         generateOptions.providerOptions = {
           openai: {
             reasoningEffort: effort,
