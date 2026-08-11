@@ -3,7 +3,7 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { fetchModelCatalog, CatalogProvider, CatalogModel } from "./catalog.js";
+import { fetchModelCatalog, CatalogProvider } from "./catalog.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,11 +49,16 @@ export async function setupModels() {
   }
 
   const providerKeys = Object.keys(catalog.providers);
-  const providerChoices = providerKeys.map((key) => ({
-    title: `${catalog.providers[key].name} (${catalog.providers[key].models.length} models)`,
-    value: key,
-    selected: ["deepseek", "minimax", "openai", "anthropic"].includes(key)
-  }));
+  const providerChoices = providerKeys.map((key) => {
+    const prov = catalog.providers[key];
+    const displayName = prov?.name || key;
+    const modelCount = prov?.models?.length || 0;
+    return {
+      title: `${displayName} (${modelCount} models)`,
+      value: key,
+      selected: ["openrouter", "deepseek", "minimax", "openai", "anthropic"].includes(key)
+    };
+  });
 
   const selectedProvidersAnswer = await prompts({
     type: "multiselect",
@@ -75,27 +80,30 @@ export async function setupModels() {
 
   for (const provKey of selectedProviderKeys) {
     const provInfo: CatalogProvider = catalog.providers[provKey];
+    const displayName = provInfo?.name || provKey;
+    const apiKeyEnv = provInfo?.apiKeyEnv || `${provKey.toUpperCase()}_API_KEY`;
+
     configuredProvidersConfig[provKey] = {
       baseURL: provInfo.baseURL,
-      apiKeyEnv: provInfo.apiKeyEnv,
+      apiKeyEnv: apiKeyEnv,
       defaultModel: provInfo.models[0]?.id || ""
     };
 
     if (provKey === "ollama") {
-      newEnvVars[provInfo.apiKeyEnv] = newEnvVars[provInfo.apiKeyEnv] || "ollama";
+      newEnvVars[apiKeyEnv] = newEnvVars[apiKeyEnv] || "ollama";
       continue;
     }
 
     const keyAnswer = await prompts({
       type: "password",
       name: "apiKey",
-      message: `Enter API key for ${chalk.bold(provInfo.name)} (${provInfo.apiKeyEnv}):`,
-      initial: existingEnv[provInfo.apiKeyEnv] || ""
+      message: `Enter API key for ${chalk.bold(displayName)} (${apiKeyEnv}):`,
+      initial: existingEnv[apiKeyEnv] || ""
     });
 
     if (keyAnswer.apiKey) {
-      newEnvVars[provInfo.apiKeyEnv] = keyAnswer.apiKey;
-      console.log(chalk.green(`✔ Saved ${provInfo.apiKeyEnv}`));
+      newEnvVars[apiKeyEnv] = keyAnswer.apiKey;
+      console.log(chalk.green(`✔ Saved ${apiKeyEnv}`));
     }
   }
 
@@ -103,9 +111,11 @@ export async function setupModels() {
   const availableModelChoices: { title: string; value: { provider: string; model: string } }[] = [];
   for (const provKey of selectedProviderKeys) {
     const provInfo = catalog.providers[provKey];
+    const provDisplayName = provInfo?.name || provKey;
     for (const m of provInfo.models) {
+      const modelDisplayName = m.name || m.id;
       availableModelChoices.push({
-        title: `${m.name} (${provInfo.name}) - ${m.id}`,
+        title: `${modelDisplayName} [${provDisplayName}] (${m.id})`,
         value: { provider: provKey, model: m.id }
       });
     }
