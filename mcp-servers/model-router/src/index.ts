@@ -190,11 +190,14 @@ export async function routeTask(
       }
 
       const durationMs = Date.now() - startTime;
+      const metadataHeader = `[Model Router Metadata: Provider=${cand.provider} | Model=${cand.model} | Tier=${targetTier} | Duration=${durationMs}ms]\n\n`;
+      const responseText = `${metadataHeader}${text}`;
+
       logMessage("INFO", `Successfully routed task via '${cand.provider}' model '${cand.model}' in ${durationMs}ms`, {
         outputLength: text.length,
       });
 
-      return text;
+      return responseText;
     } catch (error: any) {
       logMessage("WARN", `Provider '${cand.provider}' model '${cand.model}' generation failed: ${error.message}. Retrying fallback...`, {
         errorStack: error.stack,
@@ -208,6 +211,21 @@ export async function routeTask(
   return errMessage;
 }
 
+export function getRouterStatus() {
+  const providersConfig = routerConfig?.providers || {};
+  const activeKeys: Record<string, boolean> = {};
+  for (const [pName, pConf] of Object.entries(providersConfig) as any) {
+    const envKey = pConf.apiKeyEnv || `${pName.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`;
+    activeKeys[pName] = !!(process.env[envKey] || (pName === "openai" && process.env.OPENAI_API_KEY));
+  }
+  return {
+    version: "7.0.0",
+    default_model: routerConfig?.default_model || "deepseek-v4-flash",
+    configured_tiers: routerConfig?.tiers || {},
+    configured_provider_keys: activeKeys,
+  };
+}
+
 export function setupServer() {
   const server = new Server(
     { name: "model-router", version: "1.0.0" },
@@ -219,18 +237,26 @@ export function setupServer() {
       tools: [
         {
           name: "route_task",
-          description: "Route a task to a specified model profile or model with session context support",
+          description: "Route a task to a model profile (tiers: 'fast' -> MiniMax, 'smart' -> DeepSeek, 'reasoning' -> DeepSeek) or direct provider slug with session support and explicit metadata headers",
           inputSchema: {
             type: "object",
             properties: {
               prompt: { type: "string", description: "Prompt or instruction to send to the model" },
               session_id: { type: "string", description: "Optional session thread ID for conversation context" },
               new_session: { type: "boolean", description: "Set true to reset session history" },
-              modelTier: { type: "string", description: "Profile: 'default', 'fast', 'smart', 'reasoning' or provider slug" },
-              modelName: { type: "string", description: "Explicit model ID, e.g., 'gpt-4o', 'deepseek-v4-flash'" },
+              modelTier: { type: "string", description: "Profile: 'fast' (MiniMax), 'smart' (DeepSeek), 'reasoning' (DeepSeek), or provider slug" },
+              modelName: { type: "string", description: "Explicit model ID, e.g., 'gpt-4o', 'deepseek-v4-flash', 'minimax-M3'" },
               reasoningEffort: { type: "string", description: "Reasoning effort: 'none', 'low', 'medium', 'high'" }
             },
             required: ["prompt"]
+          }
+        },
+        {
+          name: "get_router_status",
+          description: "Get active model router tiers, configured API keys status, and default routing profiles",
+          inputSchema: {
+            type: "object",
+            properties: {}
           }
         },
         {
@@ -254,6 +280,12 @@ export function setupServer() {
       const response = await routeTask(prompt, modelTier, modelName, session_id, new_session, reasoningEffort);
       return {
         content: [{ type: "text", text: response }]
+      };
+    }
+    if (request.params.name === "get_router_status") {
+      const status = getRouterStatus();
+      return {
+        content: [{ type: "text", text: JSON.stringify(status, null, 2) }]
       };
     }
     if (request.params.name === "clear_session") {
