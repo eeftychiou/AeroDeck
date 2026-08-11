@@ -14,6 +14,12 @@ const rootDir = path.resolve(__dirname, "../../../");
 export async function setupGoogle() {
   console.log(chalk.bold.cyan("\n=== AeroDeck Google Workspace & Drive Setup ===\n"));
 
+  console.log(chalk.bold.yellow("📋 Quick Setup Guide for Google OAuth Credentials:"));
+  console.log(chalk.gray("1. Enable Google Drive API: ") + chalk.blue("https://console.cloud.google.com/apis/library/drive.googleapis.com"));
+  console.log(chalk.gray("2. Go to Credentials page:  ") + chalk.blue("https://console.cloud.google.com/apis/credentials"));
+  console.log(chalk.gray("3. Click '+ CREATE CREDENTIALS' -> 'OAuth client ID' -> Select 'Desktop app'."));
+  console.log(chalk.gray("4. Download the JSON file or copy your Client ID & Client Secret.\n"));
+
   const driveDir = path.join(rootDir, "mcp-servers/google-drive");
   const driveEnvPath = path.join(driveDir, ".env");
   const tokenPath = path.join(driveDir, "token.json");
@@ -32,34 +38,51 @@ export async function setupGoogle() {
     name: "inputMode",
     message: "How would you like to provide your Google Cloud OAuth credentials?",
     choices: [
-      { title: "Import GCP credentials.json file", value: "file" },
-      { title: "Enter Client ID & Client Secret manually", value: "manual" }
+      { title: "🌐 Open Google Cloud Console in browser to create credentials", value: "browser" },
+      { title: "📁 Import downloaded credentials.json file", value: "file" },
+      { title: "✏️  Enter Client ID & Client Secret manually", value: "manual" },
+      { title: "⏭️  Skip Google Drive setup for now", value: "skip" }
     ]
   });
+
+  if (modeAnswer.inputMode === "skip") {
+    console.log(chalk.yellow("Skipping Google Drive setup.\n"));
+    return;
+  }
+
+  if (modeAnswer.inputMode === "browser") {
+    console.log(chalk.blue("Opening Google Cloud Console Credentials page..."));
+    openBrowser("https://console.cloud.google.com/apis/credentials");
+  }
 
   let clientId = initialId;
   let clientSecret = initialSecret;
 
-  if (modeAnswer.inputMode === "file") {
+  if (modeAnswer.inputMode === "file" || modeAnswer.inputMode === "browser") {
     const fileAnswer = await prompts({
       type: "text",
       name: "jsonPath",
-      message: "Enter absolute path to your downloaded credentials.json:"
+      message: "Enter absolute path to your downloaded credentials.json file:"
     });
 
-    if (fileAnswer.jsonPath && fs.existsSync(fileAnswer.jsonPath.trim())) {
-      try {
-        const rawJson = JSON.parse(fs.readFileSync(fileAnswer.jsonPath.trim(), "utf-8"));
-        const creds = rawJson.installed || rawJson.web;
-        if (creds && creds.client_id && creds.client_secret) {
-          clientId = creds.client_id;
-          clientSecret = creds.client_secret;
-          console.log(chalk.green("✔ Successfully extracted Client ID & Secret from credentials.json"));
-        } else {
-          console.log(chalk.red("✖ Invalid credentials.json format. Falling back to manual entry."));
+    if (fileAnswer.jsonPath) {
+      const cleanPath = fileAnswer.jsonPath.trim().replace(/^["']|["']$/g, "");
+      if (fs.existsSync(cleanPath)) {
+        try {
+          const rawJson = JSON.parse(fs.readFileSync(cleanPath, "utf-8"));
+          const creds = rawJson.installed || rawJson.web;
+          if (creds && creds.client_id && creds.client_secret) {
+            clientId = creds.client_id;
+            clientSecret = creds.client_secret;
+            console.log(chalk.green("✔ Successfully extracted Client ID & Secret from credentials.json"));
+          } else {
+            console.log(chalk.red("✖ Invalid credentials.json format. Falling back to manual entry."));
+          }
+        } catch (err: any) {
+          console.log(chalk.red(`✖ Failed to parse credentials file: ${err.message}`));
         }
-      } catch (err: any) {
-        console.log(chalk.red(`✖ Failed to parse credentials file: ${err.message}`));
+      } else {
+        console.log(chalk.red(`✖ File not found at path: ${cleanPath}`));
       }
     }
   }

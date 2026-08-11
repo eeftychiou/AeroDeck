@@ -6,14 +6,16 @@ $mcpConfigFile = "$env:USERPROFILE\.gemini\config\mcp_config.json"
 
 Write-Host "Installing AeroDeck plugin to $pluginDir..."
 
-# 1. Copy plugin files
-if (Test-Path $pluginDir) {
-    Remove-Item -Recurse -Force $pluginDir
+# 1. Copy plugin files without attempting to delete pluginDir (avoids CWD lock error)
+if (-not (Test-Path $pluginDir)) {
+    New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
 }
-New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
-Copy-Item -Path ".\plugin.json" -Destination $pluginDir
-Copy-Item -Recurse -Path ".\skills" -Destination $pluginDir
-Copy-Item -Recurse -Path ".\agents" -Destination $pluginDir -ErrorAction SilentlyContinue
+
+Copy-Item -Path ".\plugin.json" -Destination $pluginDir -Force
+Copy-Item -Recurse -Force -Path ".\skills" -Destination $pluginDir
+if (Test-Path ".\agents") {
+    Copy-Item -Recurse -Force -Path ".\agents" -Destination $pluginDir -ErrorAction SilentlyContinue
+}
 
 # 2. Register MCP servers
 $cwd = (Get-Location).Path

@@ -58,6 +58,7 @@ async function run() {
     console.log(chalk.green("✔ ffmpeg detected (required for video/audio extraction)."));
   } catch (e) {
     console.log(chalk.yellow("⚠ ffmpeg is not detected in your PATH. Video-to-audio processing will fail."));
+    console.log(chalk.gray("   To install ffmpeg on Windows: run 'winget install ffmpeg' or 'choco install ffmpeg'."));
   }
   console.log("");
 
