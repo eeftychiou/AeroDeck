@@ -26,6 +26,7 @@ import { generateText } from "ai";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
+import { getSessionHistory, appendSessionTurn, clearSession } from "./session.js";
 
 const configPath = path.resolve(__dirname, "../config.json");
 let routerConfig: any = null;
@@ -37,92 +38,108 @@ if (fs.existsSync(configPath)) {
   }
 }
 
-// Map of custom OpenAI-compatible provider instances
 const providerInstances: Record<string, ReturnType<typeof createOpenAI>> = {};
 
-function getProviderModel(providerName: string, modelId: string) {
+function getProviderModel(providerName: string, modelId: string, customBaseURL?: string) {
   const normProvider = (providerName || "").toLowerCase();
-  
-  if (normProvider === "anthropic") {
+
+  if (normProvider === "anthropic" && !customBaseURL) {
     return anthropic(modelId);
   }
-  if (normProvider === "google") {
+  if (normProvider === "gemini" && !customBaseURL) {
     return google(modelId);
   }
-  if (normProvider === "openai" && !routerConfig?.providers?.openai?.baseURL) {
+  if (normProvider === "openai" && !customBaseURL && !routerConfig?.providers?.openai?.baseURL) {
     return openai(modelId);
   }
 
-  // Look up provider config in config.json
   const provConfig = routerConfig?.providers?.[normProvider] || {};
-  const baseURL = provConfig.baseURL || "https://api.openai.com/v1";
-  const apiKeyEnv = provConfig.apiKeyEnv || `${normProvider.toUpperCase()}_API_KEY`;
-  const apiKey = process.env[apiKeyEnv] || process.env.OPENAI_API_KEY || "";
+  const baseURL = customBaseURL || provConfig.baseURL || "https://api.openai.com/v1";
+  const apiKeyEnv = provConfig.apiKeyEnv || `${normProvider.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`;
+  const apiKey = process.env[apiKeyEnv] || process.env.OPENAI_API_KEY || "none";
 
-  if (!providerInstances[normProvider]) {
-    providerInstances[normProvider] = createOpenAI({
+  const instanceKey = `${normProvider}_${baseURL}`;
+  if (!providerInstances[instanceKey]) {
+    providerInstances[instanceKey] = createOpenAI({
       baseURL,
       apiKey,
     });
   }
 
-  return providerInstances[normProvider](modelId);
+  return providerInstances[instanceKey](modelId);
 }
 
-export async function routeTask(prompt: string, modelTier: string = "smart", modelName?: string) {
-  const targetTier = (modelTier || "").trim().toLowerCase();
+export async function routeTask(
+  prompt: string,
+  modelTier: string = "smart",
+  modelName?: string,
+  sessionId?: string,
+  newSession?: boolean,
+  reasoningEffort?: string
+) {
+  const targetTier = (modelTier || "default").trim().toLowerCase();
   const explicitModel = (modelName || "").trim();
   let model: any = null;
+  let targetReasoningEffort = reasoningEffort || "";
 
+  if (sessionId && newSession) {
+    clearSession(sessionId);
+  }
+
+  // 1. First check if modelTier matches a configured tier profile (e.g. fast, smart, reasoning, default)
   if (routerConfig && routerConfig.tiers && routerConfig.tiers[targetTier]) {
     const tierConfig = routerConfig.tiers[targetTier];
     const targetModel = explicitModel || tierConfig.model;
     const providerName = tierConfig.provider || "openai";
-    model = getProviderModel(providerName, targetModel);
+    targetReasoningEffort = targetReasoningEffort || tierConfig.reasoningEffort || "medium";
+    model = getProviderModel(providerName, targetModel, tierConfig.baseURL);
+  }
+  // 2. Next check if modelTier matches a known provider slug directly (e.g. minimax, deepseek, openrouter)
+  else if (routerConfig && routerConfig.providers && routerConfig.providers[targetTier]) {
+    const provConfig = routerConfig.providers[targetTier];
+    const targetModel = explicitModel || provConfig.defaultModel || "default";
+    model = getProviderModel(targetTier, targetModel, provConfig.baseURL);
   }
 
+  // 3. Fallback: if explicit model ID passed, or smart tier fallback
   if (!model) {
     const target = (explicitModel || modelTier || "").trim();
-    const lowerTarget = target.toLowerCase();
+    const defaultModel = explicitModel || target || routerConfig?.default_model || "deepseek-v4-flash";
+    const smartTier = routerConfig?.tiers?.smart;
+    model = getProviderModel(smartTier?.provider || "deepseek", defaultModel, smartTier?.baseURL);
+  }
 
-    if (lowerTarget.includes("minimax") || lowerTarget.startsWith("abab")) {
-      const selectedModel = explicitModel || (lowerTarget === "minimax" || lowerTarget === "fast" ? (routerConfig?.tiers?.fast?.model || "minimax-M3") : target);
-      model = getProviderModel("minimax", selectedModel);
-    } else if (lowerTarget.includes("deepseek")) {
-      const selectedModel = explicitModel || (lowerTarget === "deepseek" || lowerTarget === "smart" ? (routerConfig?.tiers?.smart?.model || "deepseek-v4-flash") : target);
-      model = getProviderModel("deepseek", selectedModel);
-    } else if (lowerTarget.includes("claude") || lowerTarget.includes("anthropic")) {
-      const selectedModel = explicitModel || "claude-3-5-sonnet-20241022";
-      model = getProviderModel("anthropic", selectedModel);
-    } else if (lowerTarget.includes("gpt") || lowerTarget.includes("openai")) {
-      const selectedModel = explicitModel || "gpt-4o-mini";
-      model = getProviderModel("openai", selectedModel);
-    } else if (lowerTarget === "fast") {
-      const fastTier = routerConfig?.tiers?.fast;
-      model = getProviderModel(fastTier?.provider || "minimax", explicitModel || fastTier?.model || "minimax-M3");
-    } else {
-      const defaultModel = explicitModel || target || routerConfig?.default_model || "deepseek-v4-flash";
-      const smartTier = routerConfig?.tiers?.smart;
-      model = getProviderModel(smartTier?.provider || "deepseek", defaultModel);
+  // Retrieve session context if session_id provided
+  let fullPrompt = prompt;
+  if (sessionId) {
+    const history = getSessionHistory(sessionId);
+    if (history.length > 0) {
+      const historyStr = history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
+      fullPrompt = `[Previous Conversation History]\n${historyStr}\n\nUSER: ${prompt}`;
     }
   }
 
   try {
     const generateOptions: any = {
       model,
-      prompt,
+      prompt: fullPrompt,
     };
 
-    const modelId = String(model?.modelId || "").toLowerCase();
-    if (modelId.includes("reasoner") || modelId.includes("o1") || modelId.includes("o3") || routerConfig?.tiers?.[targetTier]?.reasoningEffort === "high") {
+    const effort = (targetReasoningEffort || "").toLowerCase();
+    if (effort === "high" || effort === "medium" || effort === "low") {
       generateOptions.providerOptions = {
         openai: {
-          reasoningEffort: "high",
+          reasoningEffort: effort,
         },
       };
     }
 
     const { text } = await generateText(generateOptions);
+
+    if (sessionId && text) {
+      appendSessionTurn(sessionId, prompt, text);
+    }
+
     return text;
   } catch (error: any) {
     return `Error routing task: ${error.message}`;
@@ -140,15 +157,29 @@ export function setupServer() {
       tools: [
         {
           name: "route_task",
-          description: "Route a task to a specified model tier or exact model name (e.g. deepseek-v4-flash, minimax-M3, gpt-4o, claude-3-5-sonnet)",
+          description: "Route a task to a specified model profile or model with session context support",
           inputSchema: {
             type: "object",
             properties: {
               prompt: { type: "string", description: "Prompt or instruction to send to the model" },
-              modelTier: { type: "string", description: "Model tier: 'fast', 'smart', 'reasoning', or provider name" },
-              modelName: { type: "string", description: "Exact model ID, e.g., 'deepseek-v4-flash', 'minimax-M3', 'gpt-4o-mini'" }
+              session_id: { type: "string", description: "Optional session thread ID for conversation context" },
+              new_session: { type: "boolean", description: "Set true to reset session history" },
+              modelTier: { type: "string", description: "Profile: 'default', 'fast', 'smart', 'reasoning' or provider slug" },
+              modelName: { type: "string", description: "Explicit model ID, e.g., 'gpt-4o', 'deepseek-v4-flash'" },
+              reasoningEffort: { type: "string", description: "Reasoning effort: 'none', 'low', 'medium', 'high'" }
             },
             required: ["prompt"]
+          }
+        },
+        {
+          name: "clear_session",
+          description: "Clear conversation history for a specific session ID",
+          inputSchema: {
+            type: "object",
+            properties: {
+              session_id: { type: "string", description: "Session ID to clear" }
+            },
+            required: ["session_id"]
           }
         }
       ]
@@ -157,10 +188,17 @@ export function setupServer() {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (request.params.name === "route_task") {
-      const { prompt, modelTier, modelName } = request.params.arguments as any;
-      const response = await routeTask(prompt, modelTier, modelName);
+      const { prompt, modelTier, modelName, session_id, new_session, reasoningEffort } = request.params.arguments as any;
+      const response = await routeTask(prompt, modelTier, modelName, session_id, new_session, reasoningEffort);
       return {
         content: [{ type: "text", text: response }]
+      };
+    }
+    if (request.params.name === "clear_session") {
+      const { session_id } = request.params.arguments as any;
+      const cleared = clearSession(session_id);
+      return {
+        content: [{ type: "text", text: cleared ? `Session '${session_id}' cleared.` : `Session '${session_id}' not found.` }]
       };
     }
     throw new Error(`Tool not found: ${request.params.name}`);

@@ -3,23 +3,28 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { fetchModelCatalog, CatalogProvider } from "./catalog.js";
+import { fetchModelCatalog, fetchLiveModels, CANONICAL_PROVIDERS, CatalogModel } from "./catalog.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "../../../");
 
-export async function setupModels() {
-  console.log(chalk.bold.cyan("\n=== AeroDeck Model & Provider Configuration ===\n"));
+export interface ModelProfileConfig {
+  provider: string;
+  model: string;
+  baseURL: string;
+  apiKeyEnv: string;
+  reasoningEffort: string;
+}
 
-  console.log(chalk.yellow("Fetching Hermes Model Catalog..."));
+export async function setupModels() {
+  console.log(chalk.bold.cyan("\n=== AeroDeck Interactive Model & Provider Configuration ===\n"));
+
   let catalog;
   try {
     catalog = await fetchModelCatalog();
-    console.log(chalk.green(`✔ Loaded model catalog (${Object.keys(catalog.providers).length} providers available)`));
   } catch (err: any) {
-    console.log(chalk.red(`✖ Failed to load catalog: ${err.message}`));
-    return;
+    catalog = { providers: {} };
   }
 
   const routerDir = path.join(rootDir, "mcp-servers/model-router");
@@ -39,7 +44,7 @@ export async function setupModels() {
   }
 
   // Load existing config.json
-  let existingConfig: any = { tiers: {}, providers: {} };
+  let existingConfig: any = { default_model: "", tiers: {}, providers: {} };
   if (fs.existsSync(configPath)) {
     try {
       existingConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
@@ -48,132 +53,203 @@ export async function setupModels() {
     }
   }
 
-  const providerKeys = Object.keys(catalog.providers);
-  const providerChoices = providerKeys.map((key) => {
-    const prov = catalog.providers[key];
-    const displayName = prov?.name || key;
-    const modelCount = prov?.models?.length || 0;
-    return {
-      title: `${displayName} (${modelCount} models)`,
-      value: key,
-      selected: ["openrouter", "deepseek", "minimax", "openai", "anthropic"].includes(key)
-    };
-  });
-
-  const selectedProvidersAnswer = await prompts({
-    type: "multiselect",
-    name: "providers",
-    message: "Select AI Providers you want to configure:",
-    choices: providerChoices,
-    hint: "- Space to select. Return to submit"
-  });
-
-  const selectedProviderKeys: string[] = selectedProvidersAnswer.providers || [];
-  if (selectedProviderKeys.length === 0) {
-    console.log(chalk.yellow("⚠ No providers selected. Skipping model router configuration."));
-    return;
-  }
-
-  // Collect API keys for selected providers
+  const configuredProviders: Record<string, any> = { ...existingConfig.providers };
+  const configuredTiers: Record<string, any> = { ...existingConfig.tiers };
   const newEnvVars: Record<string, string> = { ...existingEnv };
-  const configuredProvidersConfig: Record<string, any> = { ...existingConfig.providers };
 
-  for (const provKey of selectedProviderKeys) {
-    const provInfo: CatalogProvider = catalog.providers[provKey];
-    const displayName = provInfo?.name || provKey;
-    const apiKeyEnv = provInfo?.apiKeyEnv || `${provKey.toUpperCase()}_API_KEY`;
+  let keepConfiguring = true;
+  let modelCount = 0;
 
-    configuredProvidersConfig[provKey] = {
-      baseURL: provInfo.baseURL,
-      apiKeyEnv: apiKeyEnv,
-      defaultModel: provInfo.models[0]?.id || ""
-    };
+  while (keepConfiguring) {
+    modelCount++;
+    console.log(chalk.bold.yellow(`\n--- Configuring Model #${modelCount} ---`));
 
-    if (provKey === "ollama") {
-      newEnvVars[apiKeyEnv] = newEnvVars[apiKeyEnv] || "ollama";
-      continue;
-    }
+    // 1. Select Provider
+    const providerChoices = CANONICAL_PROVIDERS.map((p) => ({
+      title: `${p.label} - ${p.tui_desc}`,
+      value: p.slug
+    }));
 
-    const keyAnswer = await prompts({
-      type: "password",
-      name: "apiKey",
-      message: `Enter API key for ${chalk.bold(displayName)} (${apiKeyEnv}):`,
-      initial: existingEnv[apiKeyEnv] || ""
+    const providerAns = await prompts({
+      type: "select",
+      name: "providerSlug",
+      message: "Select AI Provider or Custom Endpoint:",
+      choices: providerChoices
     });
 
-    if (keyAnswer.apiKey) {
-      newEnvVars[apiKeyEnv] = keyAnswer.apiKey;
-      console.log(chalk.green(`✔ Saved ${apiKeyEnv}`));
-    }
-  }
+    const selectedSlug = providerAns.providerSlug || "openrouter";
+    const canonicalInfo = CANONICAL_PROVIDERS.find(p => p.slug === selectedSlug);
 
-  // Build model choices from selected providers
-  const availableModelChoices: { title: string; value: { provider: string; model: string } }[] = [];
-  for (const provKey of selectedProviderKeys) {
-    const provInfo = catalog.providers[provKey];
-    const provDisplayName = provInfo?.name || provKey;
-    for (const m of provInfo.models) {
-      const modelDisplayName = m.name || m.id;
-      availableModelChoices.push({
-        title: `${modelDisplayName} [${provDisplayName}] (${m.id})`,
-        value: { provider: provKey, model: m.id }
+    let providerName = canonicalInfo?.label || selectedSlug;
+    let apiKeyEnv = canonicalInfo?.apiKeyEnv || `${selectedSlug.toUpperCase()}_API_KEY`;
+    let baseURL = canonicalInfo?.defaultBaseURL || "https://api.openai.com/v1";
+
+    // If Custom Endpoint, prompt for custom provider details
+    if (selectedSlug === "custom") {
+      const customNameAns = await prompts({
+        type: "text",
+        name: "customName",
+        message: "Enter custom provider display name:",
+        initial: "Custom Local LLM"
       });
+      providerName = customNameAns.customName || "Custom Local LLM";
+
+      const customBaseAns = await prompts({
+        type: "text",
+        name: "baseURL",
+        message: "Enter API Base URL (OpenAI compatible):",
+        initial: "http://localhost:8000/v1"
+      });
+      baseURL = customBaseAns.baseURL || "http://localhost:8000/v1";
+
+      const customEnvAns = await prompts({
+        type: "text",
+        name: "apiKeyEnv",
+        message: "Enter environment key name for API key:",
+        initial: "CUSTOM_API_KEY"
+      });
+      apiKeyEnv = customEnvAns.apiKeyEnv || "CUSTOM_API_KEY";
+    } else {
+      const urlAns = await prompts({
+        type: "text",
+        name: "baseURL",
+        message: `Confirm Base URL for ${providerName}:`,
+        initial: baseURL
+      });
+      baseURL = urlAns.baseURL || baseURL;
     }
-  }
 
-  if (availableModelChoices.length > 0) {
-    const defaultModelAns = await prompts({
+    // 2. Prompt for API key if needed
+    let apiKey = existingEnv[apiKeyEnv] || "";
+    if (selectedSlug !== "ollama" && selectedSlug !== "lmstudio") {
+      const keyAns = await prompts({
+        type: "password",
+        name: "apiKey",
+        message: `Enter API key for ${providerName} (${apiKeyEnv}):`,
+        initial: apiKey
+      });
+      apiKey = keyAns.apiKey || apiKey;
+      if (apiKey) {
+        newEnvVars[apiKeyEnv] = apiKey;
+      }
+    } else {
+      newEnvVars[apiKeyEnv] = newEnvVars[apiKeyEnv] || "none";
+    }
+
+    // 3. Dynamic Model Retrieval from Base URL (${baseURL}/models) & Catalog
+    console.log(chalk.yellow(`Querying ${baseURL}/models for live models...`));
+    let availableModels: CatalogModel[] = await fetchLiveModels(baseURL, apiKey);
+
+    if (availableModels.length > 0) {
+      console.log(chalk.green(`✔ Dynamically retrieved ${availableModels.length} live models from endpoint`));
+    } else {
+      // Fallback to static catalog
+      const catProv = catalog.providers[selectedSlug];
+      if (catProv && catProv.models && catProv.models.length > 0) {
+        availableModels = catProv.models;
+      }
+    }
+
+    let selectedModelId = "";
+    const modelChoices = availableModels.map(m => ({
+      title: `${m.name} (${m.id})`,
+      value: m.id
+    }));
+    modelChoices.push({ title: "+ Enter custom model ID manually", value: "__manual__" });
+
+    const modelAns = await prompts({
       type: "select",
-      name: "selection",
-      message: "Select Default Model for tasks:",
-      choices: availableModelChoices.map((c) => ({ title: c.title, value: c.value }))
+      name: "modelId",
+      message: `Select model for ${providerName}:`,
+      choices: modelChoices
     });
 
-    const fastModelAns = await prompts({
+    if (!modelAns.modelId || modelAns.modelId === "__manual__") {
+      const manualAns = await prompts({
+        type: "text",
+        name: "manualModelId",
+        message: "Enter exact Model ID string:"
+      });
+      selectedModelId = manualAns.manualModelId || "default-model";
+    } else {
+      selectedModelId = modelAns.modelId;
+    }
+
+    // 4. Select Reasoning Effort
+    const reasoningAns = await prompts({
       type: "select",
-      name: "selection",
-      message: "Select Fast Tier Model (quick execution):",
-      choices: availableModelChoices.map((c) => ({ title: c.title, value: c.value }))
+      name: "effort",
+      message: `Select Reasoning Effort for ${selectedModelId}:`,
+      choices: [
+        { title: "none (Standard response generation)", value: "none" },
+        { title: "low (Minimal reasoning overhead)", value: "low" },
+        { title: "medium (Balanced thinking effort)", value: "medium" },
+        { title: "high (Deep analytical reasoning)", value: "high" }
+      ]
     });
 
-    const smartModelAns = await prompts({
-      type: "select",
-      name: "selection",
-      message: "Select Smart Tier Model (complex reasoning & coding):",
-      choices: availableModelChoices.map((c) => ({ title: c.title, value: c.value }))
+    const reasoningEffort = reasoningAns.effort || "medium";
+
+    // 5. Assign to Profiles / Tiers
+    const profileAns = await prompts({
+      type: "multiselect",
+      name: "profiles",
+      message: `Assign ${selectedModelId} to target profile(s):`,
+      choices: [
+        { title: "default (General fallback model)", value: "default", selected: modelCount === 1 },
+        { title: "fast (High-speed lightweight tasks)", value: "fast", selected: modelCount === 1 },
+        { title: "smart (Complex reasoning & coding)", value: "smart", selected: modelCount === 1 },
+        { title: "reasoning (Deep reasoning tasks)", value: "reasoning", selected: reasoningEffort === "high" }
+      ]
     });
 
-    const defaultModelVal = defaultModelAns.selection || availableModelChoices[0].value;
-    const fastModelVal = fastModelAns.selection || availableModelChoices[0].value;
-    const smartModelVal = smartModelAns.selection || availableModelChoices[0].value;
+    const chosenProfiles: string[] = profileAns.profiles || ["default"];
 
-    const newConfig = {
-      default_model: defaultModelVal.model,
-      tiers: {
-        fast: {
-          provider: fastModelVal.provider,
-          model: fastModelVal.model,
-          reasoningEffort: "medium"
-        },
-        smart: {
-          provider: smartModelVal.provider,
-          model: smartModelVal.model,
-          reasoningEffort: "high"
-        },
-        reasoning: {
-          provider: smartModelVal.provider,
-          model: smartModelVal.model,
-          reasoningEffort: "high"
-        }
-      },
-      providers: configuredProvidersConfig
+    // Register provider details in config
+    configuredProviders[selectedSlug] = {
+      name: providerName,
+      baseURL,
+      apiKeyEnv,
+      defaultModel: selectedModelId
     };
 
-    fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
-    console.log(chalk.green("✔ Saved mcp-servers/model-router/config.json"));
+    // Update profiles/tiers
+    for (const p of chosenProfiles) {
+      if (p === "default") {
+        existingConfig.default_model = selectedModelId;
+      }
+      configuredTiers[p] = {
+        provider: selectedSlug,
+        model: selectedModelId,
+        baseURL,
+        reasoningEffort
+      };
+    }
+
+    console.log(chalk.green(`✔ Configured model ${chalk.bold(selectedModelId)} [Provider: ${providerName}, Reasoning: ${reasoningEffort}]`));
+
+    // 6. Loop prompt: configure another model?
+    const nextAns = await prompts({
+      type: "confirm",
+      name: "continue",
+      message: "Would you like to configure another model or provider?",
+      initial: false
+    });
+
+    keepConfiguring = !!nextAns.continue;
   }
 
-  // Write .env
+  // Save final config.json
+  const finalConfig = {
+    default_model: existingConfig.default_model || "deepseek-v4-flash",
+    tiers: configuredTiers,
+    providers: configuredProviders
+  };
+
+  fs.writeFileSync(configPath, JSON.stringify(finalConfig, null, 2));
+  console.log(chalk.green("\n✔ Saved mcp-servers/model-router/config.json"));
+
+  // Save final .env
   let envStr = "";
   for (const [k, v] of Object.entries(newEnvVars)) {
     if (v) {

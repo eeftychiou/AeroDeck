@@ -14,7 +14,9 @@ export interface CatalogModel {
 }
 
 export interface CatalogProvider {
+  slug: string;
   name: string;
+  tui_desc?: string;
   baseURL: string;
   apiKeyEnv: string;
   models: CatalogModel[];
@@ -26,21 +28,36 @@ export interface ModelCatalog {
   providers: Record<string, CatalogProvider>;
 }
 
-const DEFAULT_BASE_URLS: Record<string, string> = {
-  openrouter: "https://openrouter.ai/api/v1",
-  openai: "https://api.openai.com/v1",
-  anthropic: "https://api.anthropic.com/v1",
-  deepseek: "https://api.deepseek.com",
-  minimax: "https://api.minimaxi.chat/v1",
-  kimi: "https://api.moonshot.cn/v1",
-  moonshot: "https://api.moonshot.cn/v1",
-  groq: "https://api.groq.com/openai/v1",
-  together: "https://api.together.xyz/v1",
-  ollama: "http://localhost:11434/v1",
-  nous: "https://api.nousresearch.com/v1"
-};
+export interface ProviderEntry {
+  slug: string;
+  label: string;
+  tui_desc: string;
+  defaultBaseURL: string;
+  apiKeyEnv: string;
+}
 
-export function getProviderDisplayName(key: string, providerObj: any): string {
+// Canonical Provider Registry ported from hermes_cli/models.py
+export const CANONICAL_PROVIDERS: ProviderEntry[] = [
+  { slug: "openrouter", label: "OpenRouter", tui_desc: "OpenRouter (Pay-per-use API aggregator)", defaultBaseURL: "https://openrouter.ai/api/v1", apiKeyEnv: "OPENROUTER_API_KEY" },
+  { slug: "nous", label: "Nous Portal", tui_desc: "Nous Portal (300+ models with bundled tool use)", defaultBaseURL: "https://api.nousresearch.com/v1", apiKeyEnv: "NOUS_API_KEY" },
+  { slug: "openai-api", label: "OpenAI API", tui_desc: "OpenAI API (api.openai.com)", defaultBaseURL: "https://api.openai.com/v1", apiKeyEnv: "OPENAI_API_KEY" },
+  { slug: "anthropic", label: "Anthropic", tui_desc: "Anthropic (Claude models via API key)", defaultBaseURL: "https://api.anthropic.com/v1", apiKeyEnv: "ANTHROPIC_API_KEY" },
+  { slug: "deepseek", label: "DeepSeek", tui_desc: "DeepSeek (V3, R1, coder, direct API)", defaultBaseURL: "https://api.deepseek.com", apiKeyEnv: "DEEPSEEK_API_KEY" },
+  { slug: "minimax", label: "MiniMax", tui_desc: "MiniMax (Global direct API)", defaultBaseURL: "https://api.minimaxi.chat/v1", apiKeyEnv: "MINIMAX_API_KEY" },
+  { slug: "kimi-coding", label: "Kimi / Moonshot", tui_desc: "Kimi Coding Plan & Moonshot API", defaultBaseURL: "https://api.moonshot.cn/v1", apiKeyEnv: "KIMI_API_KEY" },
+  { slug: "gemini", label: "Google AI Studio", tui_desc: "Google AI Studio (Native Gemini API)", defaultBaseURL: "https://generativelanguage.googleapis.com/v1beta", apiKeyEnv: "GEMINI_API_KEY" },
+  { slug: "groq", label: "Groq", tui_desc: "Groq (Ultra-fast LPU inference)", defaultBaseURL: "https://api.groq.com/openai/v1", apiKeyEnv: "GROQ_API_KEY" },
+  { slug: "together", label: "Together AI", tui_desc: "Together AI (Open model inference)", defaultBaseURL: "https://api.together.xyz/v1", apiKeyEnv: "TOGETHER_API_KEY" },
+  { slug: "ollama", label: "Ollama (Local)", tui_desc: "Ollama (Local desktop model server)", defaultBaseURL: "http://localhost:11434/v1", apiKeyEnv: "OLLAMA_API_KEY" },
+  { slug: "lmstudio", label: "LM Studio (Local)", tui_desc: "LM Studio (Local model server)", defaultBaseURL: "http://localhost:1234/v1", apiKeyEnv: "LMSTUDIO_API_KEY" },
+  { slug: "bedrock", label: "AWS Bedrock", tui_desc: "AWS Bedrock (Claude, Nova, Llama)", defaultBaseURL: "https://bedrock-runtime.us-east-1.amazonaws.com", apiKeyEnv: "AWS_SECRET_ACCESS_KEY" },
+  { slug: "azure-foundry", label: "Azure Foundry", tui_desc: "Azure AI deployment endpoint", defaultBaseURL: "https://your-resource.openai.azure.com", apiKeyEnv: "AZURE_OPENAI_API_KEY" },
+  { slug: "custom", label: "Custom Endpoint", tui_desc: "Custom OpenAI-compatible or local endpoint", defaultBaseURL: "http://localhost:8000/v1", apiKeyEnv: "CUSTOM_API_KEY" }
+];
+
+export function getProviderDisplayName(key: string, providerObj?: any): string {
+  const match = CANONICAL_PROVIDERS.find(p => p.slug === key);
+  if (match) return match.label;
   if (!providerObj) return capitalize(key);
   const rawName = providerObj.metadata?.display_name || providerObj.name || providerObj.title;
   return (rawName && typeof rawName === "string" && rawName.trim().length > 0)
@@ -71,12 +88,58 @@ export function getModelDisplayName(modelObj: any): string {
   return "Unnamed Model";
 }
 
-export function getProviderApiKeyEnv(key: string, providerObj: any): string {
+export function getProviderApiKeyEnv(key: string, providerObj?: any): string {
+  const match = CANONICAL_PROVIDERS.find(p => p.slug === key);
+  if (match) return match.apiKeyEnv;
   if (providerObj?.apiKeyEnv && typeof providerObj.apiKeyEnv === "string") {
     return providerObj.apiKeyEnv;
   }
   const cleanKey = key.toUpperCase().replace(/[^A-Z0-9]/g, "_");
   return `${cleanKey}_API_KEY`;
+}
+
+/**
+ * Dynamically queries ${baseURL}/models for live model lists (e.g. OpenAI/Ollama/vLLM compatible)
+ */
+export async function fetchLiveModels(baseURL: string, apiKey?: string): Promise<CatalogModel[]> {
+  if (!baseURL) return [];
+  const cleanBase = baseURL.replace(/\/+$/, "");
+  const modelsUrl = `${cleanBase}/models`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const headers: Record<string, string> = { "Accept": "application/json" };
+    if (apiKey && apiKey !== "ollama" && apiKey !== "none") {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(modelsUrl, { headers, signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      const rawList = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+      const models: CatalogModel[] = [];
+
+      for (const item of rawList) {
+        const id = typeof item === "string" ? item : item?.id;
+        if (id && typeof id === "string") {
+          models.push({
+            id,
+            name: getModelDisplayName(item),
+            provider: "live",
+            description: item?.description || "Live endpoint model"
+          });
+        }
+      }
+      return models;
+    }
+  } catch (err) {
+    // Fail silently, fallback to catalog or manual entry
+  }
+  return [];
 }
 
 export function normalizeCatalog(rawCatalog: any): ModelCatalog {
@@ -91,7 +154,8 @@ export function normalizeCatalog(rawCatalog: any): ModelCatalog {
     const rawProv = rawProviders[key];
     const displayName = getProviderDisplayName(key, rawProv);
     const apiKeyEnv = getProviderApiKeyEnv(key, rawProv);
-    const baseURL = rawProv.baseURL || DEFAULT_BASE_URLS[key.toLowerCase()] || "https://api.openai.com/v1";
+    const match = CANONICAL_PROVIDERS.find(p => p.slug === key);
+    const baseURL = rawProv.baseURL || match?.defaultBaseURL || "https://api.openai.com/v1";
 
     const models: CatalogModel[] = [];
     const rawModelsList = Array.isArray(rawProv.models) ? rawProv.models : [];
@@ -110,6 +174,7 @@ export function normalizeCatalog(rawCatalog: any): ModelCatalog {
     }
 
     normalized.providers[key] = {
+      slug: key,
       name: displayName,
       baseURL,
       apiKeyEnv,
@@ -135,7 +200,7 @@ export async function fetchModelCatalog(): Promise<ModelCatalog> {
       }
     }
   } catch (err) {
-    // Fall back silently to offline model-catalog.json
+    // Fall back silently
   }
 
   const localCatalogPath = path.resolve(__dirname, "../model-catalog.json");

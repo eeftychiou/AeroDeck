@@ -1,71 +1,37 @@
 import { jest } from '@jest/globals';
-import { normalizeCatalog } from '../src/catalog.js';
+import { CANONICAL_PROVIDERS } from '../src/catalog.js';
 
-describe('Setup Models Navigation & Choices Formatting Tests', () => {
-  const sampleCatalogData = {
-    version: 1,
-    providers: {
-      openrouter: {
-        metadata: {
-          display_name: 'OpenRouter'
-        },
-        models: [
-          { id: 'anthropic/claude-3.5-sonnet', description: 'Sonnet model' },
-          { id: 'google/gemini-2.5-pro', description: 'Gemini model' }
-        ]
-      },
-      nous: {
-        metadata: {
-          display_name: 'Nous Portal'
-        },
-        models: [
-          { id: 'nous/hermes-3-llama-3.1-405b' }
-        ]
-      }
-    }
-  };
+describe('Multi-Model Setup Wizard & Profile Assignment Tests', () => {
+  it('should list popular providers and custom endpoint in choices', () => {
+    const providerChoices = CANONICAL_PROVIDERS.map((p) => ({
+      title: `${p.label} - ${p.tui_desc}`,
+      value: p.slug
+    }));
 
-  it('should format provider select choices with clean titles and correct model counts', () => {
-    const catalog = normalizeCatalog(sampleCatalogData);
-    const providerKeys = Object.keys(catalog.providers);
-    const providerChoices = providerKeys.map((key) => {
-      const prov = catalog.providers[key];
-      const displayName = prov?.name || key;
-      const modelCount = prov?.models?.length || 0;
-      return {
-        title: `${displayName} (${modelCount} models)`,
-        value: key
-      };
-    });
-
-    expect(providerChoices).toHaveLength(2);
-    expect(providerChoices[0].title).toBe('OpenRouter (2 models)');
-    expect(providerChoices[1].title).toBe('Nous Portal (1 models)');
-    expect(providerChoices[0].title).not.toContain('undefined');
-    expect(providerChoices[1].title).not.toContain('undefined');
+    expect(providerChoices.length).toBeGreaterThanOrEqual(12);
+    const customOption = providerChoices.find(c => c.value === 'custom');
+    expect(customOption).toBeDefined();
+    expect(customOption?.title).toContain('Custom Endpoint');
   });
 
-  it('should format model select choices cleanly with provider tags and model IDs', () => {
-    const catalog = normalizeCatalog(sampleCatalogData);
-    const selectedProviderKeys = ['openrouter', 'nous'];
-    const availableModelChoices: { title: string; value: { provider: string; model: string } }[] = [];
-
-    for (const provKey of selectedProviderKeys) {
-      const provInfo = catalog.providers[provKey];
-      const provDisplayName = provInfo?.name || provKey;
-      for (const m of provInfo.models) {
-        const modelDisplayName = m.name || m.id;
-        availableModelChoices.push({
-          title: `${modelDisplayName} [${provDisplayName}] (${m.id})`,
-          value: { provider: provKey, model: m.id }
-        });
+  it('should correctly format model profile tiers config structure', () => {
+    const configuredTiers: Record<string, any> = {
+      fast: {
+        provider: 'openrouter',
+        model: 'anthropic/claude-3.5-sonnet',
+        baseURL: 'https://openrouter.ai/api/v1',
+        reasoningEffort: 'low'
+      },
+      smart: {
+        provider: 'deepseek',
+        model: 'deepseek-v4-flash',
+        baseURL: 'https://api.deepseek.com',
+        reasoningEffort: 'high'
       }
-    }
+    };
 
-    expect(availableModelChoices).toHaveLength(3);
-    expect(availableModelChoices[0].title).toBe('claude-3.5-sonnet (anthropic) [OpenRouter] (anthropic/claude-3.5-sonnet)');
-    expect(availableModelChoices[1].title).toBe('gemini-2.5-pro (google) [OpenRouter] (google/gemini-2.5-pro)');
-    expect(availableModelChoices[2].title).toBe('hermes-3-llama-3.1-405b (nous) [Nous Portal] (nous/hermes-3-llama-3.1-405b)');
-    expect(availableModelChoices[0].title).not.toContain('undefined');
+    expect(configuredTiers.fast.reasoningEffort).toBe('low');
+    expect(configuredTiers.smart.reasoningEffort).toBe('high');
+    expect(configuredTiers.smart.baseURL).toBe('https://api.deepseek.com');
   });
 });

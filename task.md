@@ -1,9 +1,7 @@
-# AeroDeck Onboarding & Model Setup Task Checklist
+# AeroDeck Model Router Sessions & Popular Providers Task Checklist
 
-- [x] Task 1: Hermes Model Catalog Fetcher & Offline Snapshot (`scripts/setup/src/catalog.ts`, `model-catalog.json`)
-- [x] Task 2: Multi-Provider Model Router Engine Upgrade (`mcp-servers/model-router/src/index.ts`, `config.json`)
-- [x] Task 3: Interactive Model Setup Wizard (`scripts/setup/src/setup-models.ts`, `npm run setup:models`)
-- [x] Task 4: Automated Google Workspace & Drive Setup (`scripts/setup/src/setup-google.ts`, `npm run setup:google`)
-- [x] Task 5: Refine Main Setup Wizard & Package Scripts (`scripts/setup/src/index.ts`, `package.json`)
-- [x] Task 6: Overhaul README.md & Google Drive Documentation (`README.md`, `mcp-servers/google-drive/README.md`)
-- [x] Task 7: Comprehensive Verification & Diagnostics (`npm test`, diagnostics)
+- [x] Task 1: Popular Provider Catalog & Live Base URL Fetcher (`scripts/setup/src/catalog.ts`, `fetchLiveModels`)
+- [x] Task 2: Multi-Model Interactive Setup Wizard (`scripts/setup/src/setup-models.ts`, reasoning effort & profiles loop)
+- [x] Task 3: Multi-Provider & Custom Base URL Model Router Engine (`mcp-servers/model-router/src/index.ts`)
+- [x] Task 4: Session History Persistence & Context Engine (`mcp-servers/model-router/src/session.ts`, `sessions.json`, `clear_session`)
+- [x] Task 5: Full Integration & System Test Suite (`npm test`)
