@@ -3,9 +3,11 @@
   "version": "6.0.0",
   "type": "module",
   "scripts": {
-    "setup": "npm --prefix scripts/setup install && npm --prefix scripts/setup run start",
-    "setup:models": "npm --prefix scripts/setup install && npm --prefix scripts/setup run setup:models",
-    "setup:google": "npm --prefix scripts/setup install && npm --prefix scripts/setup run setup:google",
+    "postinstall": "npm run build:servers",
+    "build:servers": "npm --prefix mcp-servers/browser-automation install --no-audit --no-fund && npm --prefix mcp-servers/browser-automation run build && npm --prefix mcp-servers/model-router install --no-audit --no-fund && npm --prefix mcp-servers/model-router run build && npm --prefix mcp-servers/google-drive install --no-audit --no-fund && npm --prefix mcp-servers/google-drive run build",
+    "setup": "npm run build:servers && npm --prefix scripts/setup install && npm --prefix scripts/setup run start",
+    "setup:models": "npm run build:servers && npm --prefix scripts/setup install && npm --prefix scripts/setup run setup:models",
+    "setup:google": "npm run build:servers && npm --prefix scripts/setup install && npm --prefix scripts/setup run setup:google",
     "test": "node scripts/test-runner.js --unit",
     "test:unit": "node scripts/test-runner.js --unit",
     "test:live": "node scripts/test-runner.js --live"

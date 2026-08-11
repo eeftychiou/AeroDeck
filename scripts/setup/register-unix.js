@@ -1,11 +1,28 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { execSync } from 'child_process';
+
+const cwd = process.cwd();
+const servers = ["browser-automation", "model-router", "google-drive"];
+
+console.log("Installing dependencies & building MCP servers on Unix...");
+for (const server of servers) {
+  const serverPath = path.join(cwd, "mcp-servers", server);
+  if (fs.existsSync(serverPath)) {
+    console.log(`  [+] Building mcp-servers/${server}...`);
+    try {
+      execSync(`npm --prefix "${serverPath}" install --no-audit --no-fund`, { stdio: 'inherit' });
+      execSync(`npm --prefix "${serverPath}" run build`, { stdio: 'inherit' });
+    } catch (err) {
+      console.error(`  ✖ Failed to build ${server}: ${err.message}`);
+    }
+  }
+}
 
 const mcpConfigFile = path.join(os.homedir(), '.gemini/config/mcp_config.json');
 if (fs.existsSync(mcpConfigFile)) {
   const config = JSON.parse(fs.readFileSync(mcpConfigFile, 'utf-8'));
-  const cwd = process.cwd();
   
   config.mcpServers = config.mcpServers || {};
   config.mcpServers["browser-automation"] = {

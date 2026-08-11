@@ -6,7 +6,7 @@ $mcpConfigFile = "$env:USERPROFILE\.gemini\config\mcp_config.json"
 
 Write-Host "Installing AeroDeck plugin to $pluginDir..."
 
-# 1. Copy plugin files if source directory is not already the target directory (avoids self-copy and CWD lock errors)
+# 1. Copy plugin files if source directory is not already the target directory
 $resolvedSourceFile = (Resolve-Path ".\plugin.json").Path
 $resolvedTargetDir = [System.IO.Path]::GetFullPath($pluginDir)
 $resolvedTargetFile = Join-Path $resolvedTargetDir "plugin.json"
@@ -24,8 +24,21 @@ if ($resolvedSourceFile -ne $resolvedTargetFile) {
     Write-Host "Plugin source is already located at target $pluginDir. Skipping file self-copy."
 }
 
-# 2. Register MCP servers
+# 2. Build MCP servers & install dependencies
 $cwd = (Get-Location).Path
+
+Write-Host "Installing dependencies & building MCP servers..."
+$servers = @("browser-automation", "model-router", "google-drive")
+foreach ($server in $servers) {
+    $serverPath = Join-Path $cwd "mcp-servers\$server"
+    if (Test-Path $serverPath) {
+        Write-Host "  [+] Installing & building mcp-servers/$server..."
+        npm --prefix $serverPath install --no-audit --no-fund
+        npm --prefix $serverPath run build
+    }
+}
+
+# 3. Register MCP servers
 $browserServerPath = Join-Path $cwd "mcp-servers\browser-automation\dist\src\index.js"
 $routerServerPath = Join-Path $cwd "mcp-servers\model-router\dist\index.js"
 $driveServerPath = Join-Path $cwd "mcp-servers\google-drive\dist\index.js"
