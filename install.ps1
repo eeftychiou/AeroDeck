@@ -6,15 +6,22 @@ $mcpConfigFile = "$env:USERPROFILE\.gemini\config\mcp_config.json"
 
 Write-Host "Installing AeroDeck plugin to $pluginDir..."
 
-# 1. Copy plugin files without attempting to delete pluginDir (avoids CWD lock error)
-if (-not (Test-Path $pluginDir)) {
-    New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
-}
+# 1. Copy plugin files if source directory is not already the target directory (avoids self-copy and CWD lock errors)
+$resolvedSourceFile = (Resolve-Path ".\plugin.json").Path
+$resolvedTargetDir = [System.IO.Path]::GetFullPath($pluginDir)
+$resolvedTargetFile = Join-Path $resolvedTargetDir "plugin.json"
 
-Copy-Item -Path ".\plugin.json" -Destination $pluginDir -Force
-Copy-Item -Recurse -Force -Path ".\skills" -Destination $pluginDir
-if (Test-Path ".\agents") {
-    Copy-Item -Recurse -Force -Path ".\agents" -Destination $pluginDir -ErrorAction SilentlyContinue
+if ($resolvedSourceFile -ne $resolvedTargetFile) {
+    if (-not (Test-Path $pluginDir)) {
+        New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
+    }
+    Copy-Item -Path ".\plugin.json" -Destination $pluginDir -Force
+    Copy-Item -Recurse -Force -Path ".\skills" -Destination $pluginDir
+    if (Test-Path ".\agents") {
+        Copy-Item -Recurse -Force -Path ".\agents" -Destination $pluginDir -ErrorAction SilentlyContinue
+    }
+} else {
+    Write-Host "Plugin source is already located at target $pluginDir. Skipping file self-copy."
 }
 
 # 2. Register MCP servers
