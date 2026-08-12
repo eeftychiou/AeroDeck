@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { logMessage } from "./logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,7 @@ function loadSessions(): Record<string, SessionMessage[]> {
     try {
       const data = fs.readFileSync(sessionsFilePath, "utf-8");
       inMemorySessions = JSON.parse(data);
+      logMessage("DEBUG", "Loaded sessions from disk", { count: Object.keys(inMemorySessions!).length });
       return inMemorySessions!;
     } catch (e) {
       console.error("Failed to parse sessions.json:", e);
@@ -36,6 +38,7 @@ function saveSessions(sessions: Record<string, SessionMessage[]>) {
     const tempPath = `${sessionsFilePath}.${Date.now()}.${Math.random().toString(36).substring(2, 8)}.tmp`;
     fs.writeFileSync(tempPath, JSON.stringify(sessions, null, 2));
     fs.renameSync(tempPath, sessionsFilePath);
+    logMessage("DEBUG", "Saved sessions to disk successfully");
   } catch (e) {
     console.error("Failed to write sessions.json:", e);
   }
@@ -44,6 +47,8 @@ function saveSessions(sessions: Record<string, SessionMessage[]>) {
 export function getSessionHistory(sessionId: string): SessionMessage[] {
   if (!sessionId) return [];
   const sessions = loadSessions();
+  const turns = sessions[sessionId]?.length || 0;
+  logMessage("DEBUG", "Retrieved session history", { sessionId, turns });
   return sessions[sessionId] || [];
 }
 
@@ -54,9 +59,13 @@ export function appendSessionTurn(sessionId: string, userPrompt: string, assista
 
   history.push({ role: "user", content: userPrompt });
   history.push({ role: "assistant", content: assistantReply });
+  
+  logMessage("DEBUG", "Appending turn to session", { sessionId, userLen: userPrompt.length, asstLen: assistantReply.length });
 
   // Trim older history while preserving latest turns
   if (history.length > maxMessages) {
+    const removed = history.length - maxMessages;
+    logMessage("DEBUG", "Truncating session history to max messages", { sessionId, removed, maxMessages });
     const trimmed = history.slice(history.length - maxMessages);
     sessions[sessionId] = trimmed;
   } else {

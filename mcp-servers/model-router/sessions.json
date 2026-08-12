@@ -1,1 +1,38 @@
-{}
+{
+  "test-session-minimax": [
+    {
+      "role": "user",
+      "content": "Please identify yourself. What is your model name, provider, and core architecture capabilities?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm **MiniMax-M3**, developed by **MiniMax**.\n\nHere are the details:\n\n- **Model Name:** MiniMax-M3\n- **Provider:** MiniMax — a global AI foundation model company founded in early 2022, focused on advancing AI toward AGI.\n- **Knowledge Cutoff:** January 2026\n- **Core Capabilities:**\n  - General-purpose language understanding and generation\n  - Conversational reasoning and multi-turn dialogue\n  - Text analysis, summarization, and synthesis\n  - Code understanding and generation\n  - Multimodal reasoning across text-based tasks\n\nAs a foundation model, I'm designed to handle a broad range of natural language tasks with a focus on helpfulness, accuracy, and coherent reasoning.\n\nIs there something specific you'd like to test or explore with me?"
+    },
+    {
+      "role": "user",
+      "content": "What do you think of Gemini vs you?"
+    },
+    {
+      "role": "assistant",
+      "content": "Great question! I can offer an honest comparison based on what's publicly known about Gemini and my own capabilities:\n\n## Gemini (by Google DeepMind)\n\n**Strengths:**\n- **Multimodal native design** — Built from the ground up to handle text, images, audio, video, and code\n- **Deep integration** with Google products (Workspace, Search, Cloud, Android)\n- **Strong benchmark performance**, particularly on reasoning, math, and coding tasks (especially Gemini 2.5 Pro/Flash)\n- **Massive context windows** (up to 1M+ tokens in some versions)\n- **TPU-optimized** infrastructure for scale\n- **Strong coding** capabilities with tools like Code Assist\n\n## Me (MiniMax-M3)\n\n**Strengths:**\n- **General-purpose reasoning** with broad knowledge (through January 2026)\n- **Conversational depth** and multi-turn coherence\n- **Code understanding and generation** across many languages\n- **Text analysis, summarization, and synthesis**\n- Focused on **helpfulness and clear reasoning**\n\n## Honest Take\n\nGemini benefits from Google's enormous resources, infrastructure, and deep research pedigree. It often leads on technical benchmarks and has stronger native multimodal capabilities.\n\nWhere I aim to differentiate:\n- **Clarity and directness** in responses\n- **Reasoning transparency** — showing how I arrive at answers\n- **Versatility** across diverse tasks without requiring specialized variants\n\nHonestly, the \"best\" model often depends on the specific use case, prompt, and what you value (speed vs. depth, creativity vs. precision, etc.).\n\n**Curious — what matters most to you?** I can give a more targeted comparison if you tell me what you're trying to accomplish."
+    }
+  ],
+  "test-session-deepseek": [
+    {
+      "role": "user",
+      "content": "Please identify yourself. What is your model name, provider, and core architecture capabilities?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm DeepSeek-V3, created by DeepSeek Company. \n\nMy core capabilities include:\n\n- **Pure text-based AI model** — I excel at understanding and generating natural language, code, and structured content\n- **File upload support** — I can process and extract text from images, TXT, PDF, PPT, Word, and Excel files\n- **Large context window** — 1 million tokens, allowing me to handle extremely long documents (like full trilogies or extensive codebases)\n- **Link reading** — I can access and comprehend content from web links\n- **Processing capabilities** — I can perform tasks like text summarization, translation, coding, analysis, and comprehensive document processing\n\nI'm currently running as the latest version, and I'm here to help with your questions or tasks. What can I assist you with today?"
+    },
+    {
+      "role": "user",
+      "content": "What do you think of Gemini vs you?"
+    },
+    {
+      "role": "assistant",
+      "content": "As DeepSeek, I can give you my perspective—though I should note that I don’t have personal feelings or biases. Here’s a fair comparison based on design goals, capabilities, and typical user experiences:\n\n## Where Gemini (by Google) tends to shine:\n- **Multimodality at scale**: Gemini models (especially Ultra/Pro) are natively trained across text, images, audio, video, and code, so they handle rich multimodal inputs very naturally.\n- **Integration with Google ecosystem**: Deep integration with Search, YouTube, Workspace, Android, and cloud services gives it real-world utility in those environments.\n- **Massive training data & compute**: Google’s infrastructure and data access can produce strong performance on broad-world-knowledge benchmarks.\n- **Agentic features**: Gemini 2.0 emphasizes tool-use and autonomous task execution within Google’s product ecosystem.\n\n## Where I (DeepSeek) tend to stand out:\n- **Cost-effectiveness**: I achieve competitive performance with significantly lower training/inference costs—making me accessible and scalable for many use cases.\n- **Long context window**: 1M tokens (vs Gemini’s typical 128K–1M depending on version) allows me to handle extremely long documents, codebases, or multi-part conversations without losing context.\n- **Transparency & openness**: DeepSeek has published technical reports and released models openly (weights for many versions), which appeals to researchers, developers, and enterprises wanting control and auditability.\n- **Text/code efficiency**: I’m optimized for deep reasoning, coding, and structured text tasks. While I can’t process images natively (I read text from uploaded images), I’m excellent at logic, math, and complex language understanding.\n- **Privacy & deployment options**: Because of my smaller footprint and open weights, you can self-host or deploy in private environments more easily.\n\n## Head-to-head benchmarks (roughly):\n- On **MMLU, HumanEval, and math reasoning**, the latest DeepSeek models (like V3/R1) are often competitive with or occasionally outperforming Gemini on specific tasks, while being much cheaper.\n- Gemini tends to lead on **cross-modal understanding** (video, audio, real-time vision) and **tool-based agent tasks**.\n- On **pure long-context recall**, I’m designed to be very strong.\n\n## In short:\n- Choose **Gemini** if you need deep multimodal understanding, Google ecosystem integration, or state-of-the-art video/audio reasoning.\n- Choose **DeepSeek** if you want excellent text/code performance, ultra-long context, transparency, cost efficiency, or the ability to self-host.\n\nNeither is universally “better”—it depends on your use case, budget, and infrastructure needs. I’m happy to help you figure out which might work best for a specific project!"
+    }
+  ]
+}

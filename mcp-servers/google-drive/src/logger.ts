@@ -1,18 +1,21 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+const defaultLogPath = path.resolve(process.cwd(), "google-drive.log");
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const defaultLogPath = path.resolve(__dirname, "../model-router.log");
-
-const logFilePath = process.env.MODEL_ROUTER_LOG_PATH || defaultLogPath;
+const logFilePath = process.env.GOOGLE_DRIVE_LOG_PATH || defaultLogPath;
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 const LOG_SEVERITY: Record<LogLevel, number> = { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 };
-const currentLevelStr = (process.env.MODEL_ROUTER_LOG_LEVEL || "INFO").toUpperCase();
+const currentLevelStr = (process.env.GOOGLE_DRIVE_LOG_LEVEL || "INFO").toUpperCase();
 const currentLevel: LogLevel = LOG_SEVERITY[currentLevelStr as LogLevel] !== undefined ? (currentLevelStr as LogLevel) : "INFO";
+
+export const logger = {
+  debug: (message: string, meta?: any) => logMessage("DEBUG", message, meta),
+  info: (message: string, meta?: any) => logMessage("INFO", message, meta),
+  warn: (message: string, meta?: any) => logMessage("WARN", message, meta),
+  error: (message: string, meta?: any) => logMessage("ERROR", message, meta),
+};
 
 export function logMessage(level: LogLevel, message: string, meta?: any) {
   if (LOG_SEVERITY[level] < LOG_SEVERITY[currentLevel]) {
@@ -44,7 +47,7 @@ export function logMessage(level: LogLevel, message: string, meta?: any) {
 
 /**
  * Protects the stdio MCP protocol by redirecting stdout writes from libraries
- * (e.g. Vercel AI SDK console.log/console.info/console.warn) to stderr/file logging.
+ * to stderr/file logging.
  */
 export function setupStdioProtection() {
   process.env.AI_SDK_LOG_WARNINGS = "false";
@@ -65,7 +68,7 @@ export function setupStdioProtection() {
 
   // Capture uncaught exceptions and unhandled rejections to prevent raw process crash output on stdout
   process.on("uncaughtException", (error: Error) => {
-    logMessage("ERROR", "Uncaught Exception detected in Model Router process", {
+    logMessage("ERROR", "Uncaught Exception detected in Google Drive process", {
       name: error.name,
       message: error.message,
       stack: error.stack,
@@ -73,8 +76,8 @@ export function setupStdioProtection() {
   });
 
   process.on("unhandledRejection", (reason: any) => {
-    logMessage("ERROR", "Unhandled Promise Rejection detected in Model Router process", reason);
+    logMessage("ERROR", "Unhandled Promise Rejection detected in Google Drive process", reason);
   });
 
-  logMessage("INFO", "Model Router Stdio Guard initialized. All debug logs routed to stderr and " + logFilePath);
+  logMessage("INFO", "Google Drive Stdio Guard initialized. All debug logs routed to stderr and " + logFilePath);
 }

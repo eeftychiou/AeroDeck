@@ -1,7 +1,5 @@
-// Protect stdio stream from stdout pollution
-console.log = (...args: any[]) => console.error("[LOG]", ...args);
-console.info = (...args: any[]) => console.error("[INFO]", ...args);
-console.warn = (...args: any[]) => console.error("[WARN]", ...args);
+import { logger, setupStdioProtection } from "./logger.js";
+setupStdioProtection();
 
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -89,6 +87,7 @@ export function setupServer() {
           q: `name contains '${parsedArgs.query}' or fullText contains '${parsedArgs.query}'`,
           fields: "files(id, name, mimeType, webViewLink)",
         });
+        logger.debug(`Search query: ${parsedArgs.query}`, res.data.files);
         return {
           content: [{ type: "text", text: JSON.stringify(res.data.files, null, 2) }]
         };
@@ -99,6 +98,7 @@ export function setupServer() {
           fileId: parsedArgs.fileId,
           fields: "mimeType, name",
         });
+        logger.debug(`Reading file ID: ${parsedArgs.fileId} (mime: ${fileMeta.data.mimeType})`);
 
         if (fileMeta.data.mimeType === "application/vnd.google-apps.document") {
           const res = await drive.files.export({
@@ -120,6 +120,7 @@ export function setupServer() {
       }
 
       if (name === "download_drive_file") {
+        logger.debug(`Downloading file ID: ${parsedArgs.fileId} to ${parsedArgs.outputPath}`);
         const dest = fs.createWriteStream(parsedArgs.outputPath);
         const res = await drive.files.get(
           { fileId: parsedArgs.fileId, alt: "media" },

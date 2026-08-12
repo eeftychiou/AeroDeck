@@ -57,6 +57,20 @@ export async function setupModels() {
   const configuredTiers: Record<string, any> = { ...existingConfig.tiers };
   const newEnvVars: Record<string, string> = { ...existingEnv };
 
+  if (Object.keys(configuredProviders).length > 0) {
+    const clearAns = await prompts({
+      type: "confirm",
+      name: "clear",
+      message: "Existing providers found in config.json. Do you want to clear them and start fresh? (Recommended for first-time setup)",
+      initial: true
+    });
+    if (clearAns.clear) {
+      for (const k in configuredProviders) delete configuredProviders[k];
+      for (const k in configuredTiers) delete configuredTiers[k];
+      console.log(chalk.cyan("✔ Cleared existing providers from configuration."));
+    }
+  }
+
   let keepConfiguring = true;
   let modelCount = 0;
 

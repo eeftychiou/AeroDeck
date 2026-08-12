@@ -10,11 +10,30 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 from dotenv import load_dotenv
 
-# Configure basic logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+def setup_logging():
+    level_str = os.getenv("TELEGRAM_BRIDGE_LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_str, logging.INFO)
+    
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+    
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    
+    # Remove existing handlers to avoid duplicates
+    root_logger.handlers.clear()
+    
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+    root_logger.addHandler(stream_handler)
+    
+    try:
+        file_handler = logging.FileHandler("telegram-bridge.log")
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+    except Exception as e:
+        print(f"Warning: Could not configure FileHandler for telegram-bridge.log: {e}")
+
+setup_logging()
 logger = logging.getLogger(__name__)
 
 load_dotenv()
@@ -39,6 +58,7 @@ def parse_allowed_ids() -> list[int]:
             allowed_ids.append(int(stripped))
         except ValueError as e:
             logger.error("Failed to parse user ID '%s' from ALLOWED_USER_IDS: %s", stripped, e)
+    logger.debug("Parsed %d allowed user IDs", len(allowed_ids))
     return allowed_ids
 
 
@@ -71,6 +91,7 @@ def restricted(
         if user_id not in ALLOWED_IDS:
             logger.warning("Unauthorized access attempt from user ID: %s", user_id)
             return None
+        logger.debug("Access granted to user ID: %s", user_id)
         return await func(update, context, *args, **kwargs)
     return wrapped
 
@@ -183,6 +204,7 @@ async def propose_command(chat_id: int, command_id: str, command_string: str, co
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     pending_approvals[command_id] = command_string
+    logger.debug("Proposing command '%s' with payload length: %d", command_id, len(command_string))
     await context.bot.send_message(
         chat_id=chat_id,
         text=f"**Command Proposed for Execution:**\n`{command_string}`",
@@ -244,6 +266,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         workspace_path = "./telegram-workspace"
         os.makedirs(workspace_path, exist_ok=True)
         target_path = os.path.join(workspace_path, file_name)
+        logger.debug("Intercepted document '%s' (size: %s bytes, mime: %s)", file_name, getattr(doc, "file_size", "unknown"), getattr(doc, "mime_type", "unknown"))
         await new_file.download_to_drive(custom_path=target_path)
         await update.message.reply_text(f"Received and saved file: `{file_name}` to workspace.")
     except Exception as e:

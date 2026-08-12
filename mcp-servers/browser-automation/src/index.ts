@@ -1,7 +1,5 @@
-// Protect stdio stream from stdout pollution
-console.log = (...args: any[]) => console.error("[LOG]", ...args);
-console.info = (...args: any[]) => console.error("[INFO]", ...args);
-console.warn = (...args: any[]) => console.error("[WARN]", ...args);
+import { logger, setupStdioProtection } from "./logger.js";
+setupStdioProtection();
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { chromium, Browser, Page } from "playwright";
@@ -22,6 +20,7 @@ export async function handleNavigate(url: string) {
   if (!activePage) activePage = await browser.newPage();
   
   try {
+    logger.debug(`Navigating to URL: ${url}`);
     await activePage.goto(url);
     return { content: [{ type: "text", text: `Navigated to ${url}` }] };
   } catch (e: any) {
@@ -33,6 +32,7 @@ export async function handleGetContent() {
   if (!activePage) return { content: [{ type: "text", text: "Error: No active page" }], isError: true };
   try {
     const html = await activePage.content();
+    logger.debug(`Retrieved content length: ${html.length} characters`);
     return { content: [{ type: "text", text: html }] };
   } catch (e: any) {
     return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
@@ -42,6 +42,7 @@ export async function handleGetContent() {
 export async function handleClickElement(selector: string) {
   if (!activePage) return { content: [{ type: "text", text: "Error: No active page" }], isError: true };
   try {
+    logger.debug(`Clicking element with selector: ${selector}`);
     await activePage.click(selector);
     return { content: [{ type: "text", text: `Clicked ${selector}` }] };
   } catch (e: any) {
@@ -52,6 +53,7 @@ export async function handleClickElement(selector: string) {
 export async function handleFillElement(selector: string, value: string) {
   if (!activePage) return { content: [{ type: "text", text: "Error: No active page" }], isError: true };
   try {
+    logger.debug(`Filling element with selector: ${selector}`);
     await activePage.fill(selector, value);
     return { content: [{ type: "text", text: `Filled ${selector}` }] };
   } catch (e: any) {

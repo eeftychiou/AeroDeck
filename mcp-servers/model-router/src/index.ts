@@ -69,6 +69,31 @@ function getProviderModel(providerName: string, modelId: string, customBaseURL?:
       name: normProvider,
       baseURL,
       apiKey,
+      fetch: async (url, init) => {
+        let effort: string | null = null;
+        if (init && init.headers) {
+          const headers = new Headers(init.headers);
+          if (headers.has("x-custom-reasoning-effort")) {
+            effort = headers.get("x-custom-reasoning-effort");
+            headers.delete("x-custom-reasoning-effort");
+            init.headers = headers;
+          }
+        }
+        
+        if (effort && init && typeof init.body === "string") {
+          try {
+            const body = JSON.parse(init.body);
+            body.reasoning_effort = effort;
+            if (normProvider === "deepseek") {
+              body.extra_body = Object.assign(body.extra_body || {}, { thinking: { type: "enabled" } });
+            }
+            init.body = JSON.stringify(body);
+          } catch (e) {
+            // ignore JSON parse errors
+          }
+        }
+        return fetch(url, init);
+      }
     });
   }
 
@@ -108,15 +133,53 @@ export async function routeTask(
   }
 
   const candidates: Candidate[] = [];
+  let finalExplicitModel = explicitModel;
+  
+  if (finalExplicitModel === "deepseek-v4-pro") {
+    finalExplicitModel = "deepseek-v4-flash";
+    logMessage("INFO", `Mapped deepseek-v4-pro to deepseek-v4-flash due to availability constraints`);
+  }
+
+  function getGuessedProvider(m: string): string | null {
+    const l = m.toLowerCase();
+    if (l.startsWith("gpt-") || l.startsWith("o1") || l.startsWith("o3")) return "openai";
+    if (l.startsWith("claude-")) return "anthropic";
+    if (l.startsWith("gemini-")) return "google";
+    if (l.startsWith("deepseek-")) return "deepseek";
+    if (l.startsWith("minimax")) return "minimax";
+    return null;
+  }
+
+  if (finalExplicitModel) {
+    const guessed = getGuessedProvider(finalExplicitModel);
+    if (guessed) {
+      candidates.push({
+        provider: guessed,
+        model: finalExplicitModel,
+        baseURL: routerConfig?.providers?.[guessed]?.baseURL,
+        reasoningEffort: targetReasoningEffort,
+      });
+    } else {
+      const tierProv = routerConfig?.tiers?.[targetTier]?.provider;
+      if (tierProv) {
+        candidates.push({
+          provider: tierProv,
+          model: finalExplicitModel,
+          baseURL: routerConfig?.tiers?.[targetTier]?.baseURL,
+          reasoningEffort: targetReasoningEffort,
+        });
+      }
+    }
+  }
 
   // 1. First check if modelTier matches a configured tier profile (e.g. fast, smart, reasoning, default)
   if (routerConfig && routerConfig.tiers && routerConfig.tiers[targetTier]) {
     const tierConfig = routerConfig.tiers[targetTier];
     candidates.push({
       provider: tierConfig.provider || "openai",
-      model: explicitModel || tierConfig.model,
+      model: tierConfig.model,
       baseURL: tierConfig.baseURL,
-      reasoningEffort: targetReasoningEffort || tierConfig.reasoningEffort || "medium",
+      reasoningEffort: targetReasoningEffort || tierConfig.reasoningEffort,
     });
     if (tierConfig.fallbacks && Array.isArray(tierConfig.fallbacks)) {
       for (const fb of tierConfig.fallbacks) {
@@ -124,7 +187,7 @@ export async function routeTask(
           provider: fb.provider,
           model: fb.model,
           baseURL: fb.baseURL,
-          reasoningEffort: fb.reasoningEffort || targetReasoningEffort || "medium",
+          reasoningEffort: fb.reasoningEffort || targetReasoningEffort,
         });
       }
     }
@@ -134,22 +197,35 @@ export async function routeTask(
     const provConfig = routerConfig.providers[targetTier];
     candidates.push({
       provider: targetTier,
-      model: explicitModel || provConfig.defaultModel || "default",
+      model: provConfig.defaultModel || "default",
       baseURL: provConfig.baseURL,
-      reasoningEffort: targetReasoningEffort || "medium",
+      reasoningEffort: targetReasoningEffort,
     });
   }
   // 3. Fallback: if explicit model ID passed, or smart tier fallback
-  else {
-    const defaultModel = explicitModel || targetTier || routerConfig?.default_model || "deepseek-v4-flash";
+  else if (candidates.length === 0) {
+    const defaultModel = routerConfig?.default_model || "deepseek-v4-flash";
     const smartTier = routerConfig?.tiers?.smart;
     candidates.push({
       provider: smartTier?.provider || "deepseek",
       model: defaultModel,
       baseURL: smartTier?.baseURL,
-      reasoningEffort: targetReasoningEffort || "medium",
+      reasoningEffort: targetReasoningEffort,
     });
   }
+
+  // Deduplicate candidates by provider + model to avoid redundant requests
+  const uniqueCandidates: Candidate[] = [];
+  const seenCands = new Set<string>();
+  for (const c of candidates) {
+    const key = `${c.provider}:${c.model}`;
+    if (!seenCands.has(key)) {
+      seenCands.add(key);
+      uniqueCandidates.push(c);
+    }
+  }
+  candidates.length = 0;
+  candidates.push(...uniqueCandidates);
 
   logMessage("DEBUG", `Resolved ${candidates.length} candidate model provider(s) for task`, candidates);
 
@@ -175,12 +251,21 @@ export async function routeTask(
       };
 
       const effort = (cand.reasoningEffort || "").toLowerCase();
+      const modelLower = cand.model.toLowerCase();
+      const supportsReasoning = modelLower.startsWith("o1") || modelLower.startsWith("o3") || modelLower.includes("reasoner") || modelLower.includes("think");
+      
       if (effort === "high" || effort === "medium" || effort === "low" || effort === "max") {
-        generateOptions.providerOptions = {
-          [cand.provider]: {
-            reasoningEffort: effort,
-          },
-        };
+        if (supportsReasoning) {
+          generateOptions.providerOptions = {
+            [cand.provider]: {
+              reasoningEffort: effort,
+            },
+          };
+        } else {
+          generateOptions.headers = {
+            "x-custom-reasoning-effort": effort
+          };
+        }
       }
 
       const { text } = await generateText(generateOptions);
