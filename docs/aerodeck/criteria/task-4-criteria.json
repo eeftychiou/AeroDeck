@@ -1,3 +1,3 @@
 {
-  "criteria": "README.md lists all 22 skills under 5 categories, documents 6 anonymized real-world use cases, contains relative markdown links instead of file:///c:/Users/ absolute paths, and explains both GEMINI.md auto-load and slash command activation."
+  "criteria": "Failing script throws an expected error, problem solving loop correctly diagnoses it, and fixes it."
 }

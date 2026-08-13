@@ -1,1 +1,3 @@
-{"criteria": "telegram-bridge/docs/setup.md documents whitelist security, interactive button approvals, and remote commands (/reset, /aerodeck); docs/testing.md renames subagent-driven-development to subagent-driven-task-pipeline."}
+{
+  "criteria": "Logic test script runs and returns exactly 'Success'."
+}
