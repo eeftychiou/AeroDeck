@@ -11,9 +11,9 @@ Welcome to the documentation index for the AeroDeck platform. This directory con
 
 ---
 
-## Design Specifications (`docs/aerodeck/specs/`)
+### Design Specifications (`docs/aerodeck/specs/`)
 
-Below is the complete index of all 15 design specifications:
+Below is the complete index of all 22 design specifications:
 
 | Date | Specification Title | File Link | Description |
 | :--- | :--- | :--- | :--- |
@@ -32,12 +32,19 @@ Below is the complete index of all 15 design specifications:
 | **2026-06-14** | Design Specification: Transcript Processing Skill | [2026-06-14-transcript-processing-design-spec.md](aerodeck/specs/2026-06-14-transcript-processing-design-spec.md) | Specification for processing meeting audio/video transcripts, extracting action items, and summarizing key decisions. |
 | **2026-08-07** | Outlook Mailbox Search & Research Integration Design | [2026-08-07-outlook-mail-research-design.md](aerodeck/specs/2026-08-07-outlook-mail-research-design.md) | PowerShell MAPI COM bridge design for searching local Outlook mailboxes, thread extraction, and mail research. |
 | **2026-08-10** | AeroDeck Documentation Update & Codebase Synchronization Design Specification | [2026-08-10-documentation-update-design.md](aerodeck/specs/2026-08-10-documentation-update-design.md) | Design specification for version standardization (6.0.0), MCP documentation, and central index creation. |
+| **2026-08-11** | AeroDeck Architectural Audit & General Agentic Framework Blueprint | [2026-08-11-aerodeck-agentic-framework-audit-report.md](aerodeck/specs/2026-08-11-aerodeck-agentic-framework-audit-report.md) | Comprehensive architectural audit of AeroDeck skills, Model Router, and multi-tier QA test suite. |
+| **2026-08-11** | Model Router Sessions & Hermes Catalog Integration Design | [2026-08-11-model-router-sessions-and-catalog-design.md](aerodeck/specs/2026-08-11-model-router-sessions-and-catalog-design.md) | Design for persistent conversation sessions, Hermes catalog schema normalization, and dynamic provider fallbacks. |
+| **2026-08-11** | Onboarding & Model Setup Wizard Design Specification | [2026-08-11-onboarding-and-model-setup-design.md](aerodeck/specs/2026-08-11-onboarding-and-model-setup-design.md) | Interactive setup wizard design for multi-provider API keys and tier configuration. |
+| **2026-08-12** | AeroDeck Interactive Testing Harness Design | [2026-08-12-aerodeck-interactive-testing-design.md](aerodeck/specs/2026-08-12-aerodeck-interactive-testing-design.md) | Design for interactive test runners, dummy workspace fixtures, and MCP workaround evaluation. |
+| **2026-08-12** | MCP Servers (Browser & Drive) Logging Design Specification | [2026-08-12-mcp-servers-logging-design.md](aerodeck/specs/2026-08-12-mcp-servers-logging-design.md) | Unified logging design for Browser Automation and Google Drive MCP servers. |
+| **2026-08-12** | Model Router Debug Logging & Session Memory Telemetry Design | [2026-08-12-model-router-logging-design.md](aerodeck/specs/2026-08-12-model-router-logging-design.md) | Level-based debug logging and session memory telemetry design for Model Router. |
+| **2026-08-12** | Telegram Bridge Structured Logging Design Specification | [2026-08-12-telegram-bridge-logging-design.md](aerodeck/specs/2026-08-12-telegram-bridge-logging-design.md) | Telemetry and structured logging architecture for Telegram Bridge daemon. |
 
 ---
 
 ## Execution Plans (`docs/aerodeck/plans/`)
 
-Below is the complete index of all 17 execution plans:
+Below is the complete index of all 23 execution plans:
 
 | Date | Execution Plan Title | File Link | Description |
 | :--- | :--- | :--- | :--- |
@@ -58,3 +65,9 @@ Below is the complete index of all 17 execution plans:
 | **2026-06-14** | Transcript Processing Skill Implementation Plan | [2026-06-14-transcript-processing-skill.md](aerodeck/plans/2026-06-14-transcript-processing-skill.md) | Implementation plan for meeting transcript cleaning, structured section extraction, and action items. |
 | **2026-08-07** | Outlook Mailbox Search & Research Implementation Plan | [2026-08-07-outlook-mail-research.md](aerodeck/plans/2026-08-07-outlook-mail-research.md) | Implementation plan for local Outlook MAPI search script and email research workflow skill. |
 | **2026-08-10** | AeroDeck Documentation Update & Codebase Synchronization Implementation Plan | [2026-08-10-documentation-update-plan.md](aerodeck/plans/2026-08-10-documentation-update-plan.md) | Execution plan for documentation updates, version sync (6.0.0), MCP guides, and repository index creation. |
+| **2026-08-11** | AeroDeck 7.0 Framework Overhaul Implementation Plan | [2026-08-11-aerodeck-7.0-overhaul.md](aerodeck/plans/2026-08-11-aerodeck-7.0-overhaul.md) | Comprehensive v7.0.0 framework overhaul plan: adaptive fast-track, failover cascades, and background scheduling. |
+| **2026-08-11** | Model Router Sessions & Hermes Catalog Implementation Plan | [2026-08-11-model-router-sessions-and-catalog.md](aerodeck/plans/2026-08-11-model-router-sessions-and-catalog.md) | Implementation plan for persistent session memory and Hermes catalog integration. |
+| **2026-08-11** | Onboarding & Model Setup Wizard Implementation Plan | [2026-08-11-onboarding-and-model-setup.md](aerodeck/plans/2026-08-11-onboarding-and-model-setup.md) | Implementation plan for interactive onboarding CLI and model tier configuration. |
+| **2026-08-12** | AeroDeck Interactive Testing Harness Implementation Plan | [2026-08-12-aerodeck-interactive-testing.md](aerodeck/plans/2026-08-12-aerodeck-interactive-testing.md) | Implementation plan for interactive testing harnesses and dummy environment verification. |
+| **2026-08-12** | Model Router Debug Logging Implementation Plan | [2026-08-12-model-router-logging-plan.md](aerodeck/plans/2026-08-12-model-router-logging-plan.md) | Implementation plan for Model Router debug logging and session tracking. |
+| **2026-08-12** | Telegram Bridge Structured Logging Implementation Plan | [2026-08-12-telegram-bridge-logging-plan.md](aerodeck/plans/2026-08-12-telegram-bridge-logging-plan.md) | Implementation plan for Telegram bridge structured logging and telemetry tests. |
