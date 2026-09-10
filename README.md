@@ -97,11 +97,13 @@ AeroDeck can be installed either globally (accessible across all Antigravity pro
 * **Global Installation** (Recommended):
   ```bash
   git clone https://github.com/eeftychiou/AeroDeck ~/.gemini/config/plugins/aerodeck
+  cd ~/.gemini/config/plugins/aerodeck && node scripts/setup/register-unix.js --scope=global
   ```
 
 * **Workspace Installation** (Project-level):
   ```bash
   git clone https://github.com/eeftychiou/AeroDeck .agents/plugins/aerodeck
+  cd .agents/plugins/aerodeck && node scripts/setup/register-unix.js --scope=workspace
   ```
 
 * **Updating AeroDeck**:
@@ -116,23 +118,30 @@ AeroDeck can be installed either globally (accessible across all Antigravity pro
 * **Global Installation** (Recommended):
   ```powershell
   git clone https://github.com/eeftychiou/AeroDeck "$env:USERPROFILE\.gemini\config\plugins\aerodeck"
+  cd "$env:USERPROFILE\.gemini\config\plugins\aerodeck"
+  .\install.ps1 -Scope Global
   ```
 
 * **Workspace Installation** (Project-level):
   ```powershell
   git clone https://github.com/eeftychiou/AeroDeck .agents\plugins\aerodeck
+  cd .agents\plugins\aerodeck
+  .\install.ps1 -Scope Workspace
   ```
 
 * **Automated PowerShell Installer / Updater**:
   ```powershell
-  # Run automated registration and setup
-  .\install.ps1
+  # Run automated registration and setup (defaults to Auto-detecting Global vs Workspace)
+  .\install.ps1 -Scope Auto
+
+  # Install only for a specific project
+  .\install.ps1 -Scope Workspace -ProjectPath "C:\Path\To\YourProject"
 
   # Update plugin files
   .\update.ps1
 
   # Uninstall and clean up mcp_config.json
-  .\uninstall.ps1
+  .\uninstall.ps1 -Scope Auto
   ```
 
 * **Troubleshooting Existing Folders**:
@@ -366,6 +375,8 @@ npm run test:live
 
 For architectural specifications, execution plans, and contributor guidelines:
 
+* **[Architecture & System Design](architecture.md)**: System layout, component relationships, data flow diagrams, and MCP server designs.
+* **[Agent Guidelines](AGENTS.md)**: Operational rules, behavioral constraints, and harness tool mappings for AI agents.
 * **[Documentation Index](docs/README.md)**: Catalog of 22 design specifications and 23 implementation plans.
 * **[Testing Guidelines](docs/testing.md)**: In-depth guide to writing and running AeroDeck tests.
 * **[Contributor Guidelines](CLAUDE.md)**: Quality standards, PR templates, and evaluation requirements for contributing to AeroDeck.

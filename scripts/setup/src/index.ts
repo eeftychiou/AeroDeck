@@ -63,12 +63,25 @@ async function run() {
   console.log("");
 
   // 4. MCP Server Registration
-  console.log(chalk.bold.yellow("Registering MCP servers in mcp_config.json..."));
+  const isAutoWorkspace = rootDir.replace(/\\/g, '/').toLowerCase().includes('.agents/plugins');
+  const scopeAns = await prompts({
+    type: "select",
+    name: "scope",
+    message: "Select MCP Server Registration Scope:",
+    choices: [
+      { title: "Workspace Scope (.agents/plugins/aerodeck/mcp_config.json - this project only)", value: "Workspace" },
+      { title: "Global Scope (~/.gemini/config/mcp_config.json - all projects)", value: "Global" }
+    ],
+    initial: isAutoWorkspace ? 0 : 1
+  });
+
+  const selectedScope = scopeAns.scope || (isAutoWorkspace ? "Workspace" : "Global");
+  console.log(chalk.bold.yellow(`Registering MCP servers (${selectedScope} scope)...`));
   try {
     if (process.platform === "win32") {
-      execSync("powershell -File .\\install.ps1", { cwd: rootDir, stdio: "inherit" });
+      execSync(`powershell -File .\\install.ps1 -Scope ${selectedScope}`, { cwd: rootDir, stdio: "inherit" });
     } else {
-      execSync("node scripts/setup/register-unix.js", { cwd: rootDir, stdio: "inherit" });
+      execSync(`node scripts/setup/register-unix.js --scope=${selectedScope.toLowerCase()}`, { cwd: rootDir, stdio: "inherit" });
     }
     console.log(chalk.green("✔ MCP Servers registered successfully!\n"));
   } catch (e: any) {
