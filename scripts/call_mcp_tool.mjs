@@ -1,16 +1,20 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const serverName = process.argv[2];
 const toolName = process.argv[3];
 const argsJson = process.argv[4];
 
 if (!serverName || !toolName || !argsJson) {
-  console.error('Usage: node call_mcp_tool.mjs <serverName> <toolName> <argsJson>');
+  console.error('Usage: node call_mcp_tool.mjs <serverName> <toolName> <argsJson> [configPath]');
   process.exit(1);
 }
 
-const configPath = 'C:/Users/User/.gemini/config/mcp_config.json';
+const configPath = process.argv[5] ||
+  process.env.MCP_CONFIG_PATH ||
+  (fs.existsSync('./mcp_config.json') ? './mcp_config.json' : path.join(os.homedir(), '.gemini/config/mcp_config.json'));
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const serverConfig = config.mcpServers[serverName];
 
