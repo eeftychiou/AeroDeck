@@ -3,7 +3,8 @@ param(
     [ValidateSet("Auto", "Global", "Workspace")]
     [string]$Scope = "Auto",
     [string]$ProjectPath = "",
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$ForceLocalBuild
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,14 +67,52 @@ if ($resolvedSourceFile) {
     $resolvedTargetDir = [System.IO.Path]::GetFullPath($pluginDir)
 }
 
-# 4. Build MCP servers & install dependencies (with --ignore-scripts to avoid infinite recursion)
-$baseDir = $resolvedTargetDir
+# 4. Resolve MCP Server Execution Source
+$globalBaseDir = "$env:USERPROFILE\.gemini\config\plugins\$pluginName"
+$globalBuilt = (Test-Path (Join-Path $globalBaseDir "mcp-servers\model-router\dist\index.js")) -and `
+               (Test-Path (Join-Path $globalBaseDir "mcp-servers\browser-automation\dist\src\index.js")) -and `
+               (Test-Path (Join-Path $globalBaseDir "mcp-servers\google-drive\dist\index.js"))
+
+$isCloudDrive = ($resolvedTargetDir -match "(My Drive|Google Drive|OneDrive|Dropbox)")
+$serverBaseDir = $resolvedTargetDir
+
+if ($Scope -eq "Workspace" -and -not $ForceLocalBuild) {
+    if ($globalBuilt) {
+        $serverBaseDir = $globalBaseDir
+        Write-Host "Using pre-built MCP servers from $globalBaseDir (avoids cloud sync issues and node_modules bloat)..."
+        $SkipBuild = $true
+    } elseif ($isCloudDrive) {
+        Write-Host "Detected cloud/virtual drive ($resolvedTargetDir)."
+        Write-Host "Building MCP servers into global local directory ($globalBaseDir) to prevent cloud file-locking errors..."
+        if (-not (Test-Path $globalBaseDir)) {
+            New-Item -ItemType Directory -Force -Path $globalBaseDir | Out-Null
+        }
+        Copy-Item -Path ".\plugin.json" -Destination $globalBaseDir -Force
+        Copy-Item -Recurse -Force -Path ".\skills" -Destination $globalBaseDir
+        if (Test-Path ".\mcp-servers") {
+            $destMcp = Join-Path $globalBaseDir "mcp-servers"
+            if (-not (Test-Path $destMcp)) { New-Item -ItemType Directory -Force -Path $destMcp | Out-Null }
+            robocopy ".\mcp-servers" $destMcp /E /XD node_modules .git /NFL /NDL /NJH /NJS *>$null
+        }
+        $servers = @("browser-automation", "model-router", "google-drive")
+        foreach ($server in $servers) {
+            $serverPath = Join-Path $globalBaseDir "mcp-servers\$server"
+            if (Test-Path $serverPath) {
+                Write-Host "  [+] Building mcp-servers/$server on local disk..."
+                npm --prefix $serverPath install --no-audit --no-fund --ignore-scripts
+                npm --prefix $serverPath run build
+            }
+        }
+        $serverBaseDir = $globalBaseDir
+        $SkipBuild = $true
+    }
+}
 
 if (-not $SkipBuild) {
     Write-Host "Installing dependencies & building MCP servers..."
     $servers = @("browser-automation", "model-router", "google-drive")
     foreach ($server in $servers) {
-        $serverPath = Join-Path $baseDir "mcp-servers\$server"
+        $serverPath = Join-Path $serverBaseDir "mcp-servers\$server"
         if (Test-Path $serverPath) {
             Write-Host "  [+] Installing & building mcp-servers/$server..."
             npm --prefix $serverPath install --no-audit --no-fund --ignore-scripts
@@ -83,9 +122,9 @@ if (-not $SkipBuild) {
 }
 
 # 5. Register MCP servers
-$browserServerPath = Join-Path $baseDir "mcp-servers\browser-automation\dist\src\index.js"
-$routerServerPath = Join-Path $baseDir "mcp-servers\model-router\dist\index.js"
-$driveServerPath = Join-Path $baseDir "mcp-servers\google-drive\dist\index.js"
+$browserServerPath = Join-Path $serverBaseDir "mcp-servers\browser-automation\dist\src\index.js"
+$routerServerPath = Join-Path $serverBaseDir "mcp-servers\model-router\dist\index.js"
+$driveServerPath = Join-Path $serverBaseDir "mcp-servers\google-drive\dist\index.js"
 
 $browserServerPath = $browserServerPath -replace '\\', '/'
 $routerServerPath = $routerServerPath -replace '\\', '/'
